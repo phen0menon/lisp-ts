@@ -4,13 +4,19 @@ export const enum NodeType {
   Number = 'Number',
   Boolean = 'Boolean',
   List = 'List',
+  Func = 'Func',
 }
 
 export type NodeValueList = Array<Node>;
 
 export type NodeBuiltinEval = (node: Node) => Node;
 
-export type NodeValue = NodeBuiltinEval | NodeValueList | number | string;
+export type NodeFuncDef = {
+  args: Node;
+  body: Node;
+};
+
+export type NodeValue = NodeFuncDef | NodeBuiltinEval | NodeValueList | number | string;
 
 export enum NodeCallableFlags {
   Null,
@@ -22,4 +28,9 @@ export interface Node {
   val: NodeValue;
   type: NodeType;
   flags: NodeCallableFlags;
+}
+
+export interface SymbolTable {
+  current: Record<string, Node>;
+  prev: SymbolTable;
 }
