@@ -8,6 +8,7 @@ import {
   handleBuiltinSetq,
   handleBuiltinDefun,
   handleBuiltinPrint,
+  handleBuiltinTerpri,
 } from './builtins';
 import {evalExpression} from './eval';
 import {createBuiltinObject} from './helpers';
@@ -22,9 +23,10 @@ Scope.current.symtable.set('%', createBuiltinObject(handleBuiltinModOperator));
 Scope.current.symtable.set('setq', createBuiltinObject(handleBuiltinSetq));
 Scope.current.symtable.set('print', createBuiltinObject(handleBuiltinPrint));
 Scope.current.symtable.set('defun', createBuiltinObject(handleBuiltinDefun));
+Scope.current.symtable.set('terpri', createBuiltinObject(handleBuiltinTerpri));
 
 function main(): void {
-  const code = readFileSync('./examples/basic.lisp', 'utf8');
+  const code = readFileSync('./examples/print.lisp', 'utf8');
   const parser = new Parser(code);
   const lists = parser.collect();
   lists.forEach(list => {

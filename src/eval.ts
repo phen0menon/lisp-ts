@@ -48,18 +48,21 @@ function evalList(expr: Node<NodeValueList>): AnyNode {
   return evalUserDefinedFunction(callable as Node<NodeFuncDef>, expr as Node<NodeValueList>);
 }
 
+function evalString(expr: Node<NodeSymbol>): Node<NodeSymbol> {
+  return expr;
+}
+
 export function evalExpression(expr: AnyNode): AnyNode {
   try {
     switch (expr.type) {
       case NodeType.Number:
-      case NodeType.String:
         return expr;
-      case NodeType.Symbol: {
+      case NodeType.String:
+        return evalString(expr as Node<NodeSymbol>);
+      case NodeType.Symbol:
         return evalSymbol(expr as Node<NodeSymbol>);
-      }
-      case NodeType.List: {
+      case NodeType.List:
         return evalList(expr as Node<NodeValueList>);
-      }
       default: {
         console.error(`Unknown expression: ${expr}`);
         return expr;

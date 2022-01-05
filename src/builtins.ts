@@ -2,7 +2,7 @@ import {Scope} from './scope';
 import {OperationError} from './errors';
 import {evalExpression} from './eval';
 import {createObject, createFuncObject, makeStringObject} from './helpers';
-import {AnyNode, Node, NodeNumeric, NodeType, NodeValueList} from './types';
+import {AnyNode, Node, NodeFuncDef, NodeNumeric, NodeType, NodeValueList} from './types';
 
 export function calculateModulo(a: Node<NodeNumeric>, b: Node<NodeNumeric>): Node<NodeNumeric> {
   return createObject(NodeType.Number, a.val % b.val);
@@ -155,7 +155,6 @@ export function handleBuiltinPrint(expr: Node<NodeValueList>): AnyNode {
     const strObj = makeStringObject(argument);
     console.log(strObj.val);
   }
-  console.log('');
   return null;
 }
 
@@ -203,4 +202,9 @@ export function handleBuiltinDefun(expr: Node<NodeValueList>): AnyNode {
   const func = createFuncObject({args: fparams as Node<NodeValueList>, body: expr});
   Scope.insertToSymtable(fname, func);
   return func;
+}
+
+export function handleBuiltinTerpri(expr: Node<NodeValueList>): Node<NodeValueList> {
+  console.log('');
+  return expr;
 }

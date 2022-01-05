@@ -14,7 +14,7 @@ export function createObject<T extends NodeValue>(type: NodeType, val: T): Node<
 
 export function createFuncObject(val: NodeFuncDef): Node<NodeFuncDef> {
   const obj = createObject(NodeType.Func, val);
-  obj.flags = NodeCallableFlags.UserDefined;
+  obj.flags |= NodeCallableFlags.UserDefined;
   return obj;
 }
 
