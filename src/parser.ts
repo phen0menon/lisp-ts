@@ -42,6 +42,10 @@ export class Parser {
     return this.position < this.length;
   }
 
+  gotoNextChar(): void {
+    this.position++;
+  }
+
   isChar(char: string): boolean {
     return this.currentChar === char;
   }
@@ -65,17 +69,46 @@ export class Parser {
   parseString(): AnyNode {
     this.skipChar();
     let string = '';
-    while (!this.isChar(Symbols.DQUOTE)) {
-      if (!this.hasNextChar()) {
-        throw new SyntaxError(
-          `Mismatched input: expected '${Symbols.DQUOTE}' at the end of the file.`
-        );
+    while (true) {
+      // if this is an escape character
+      if (this.isChar('\\')) {
+        this.gotoNextChar();
+        if (!this.hasNextChar()) throw new SyntaxError(`Unexpected end of file`);
+        switch (this.currentChar) {
+          case 'r': {
+            string += '\r';
+            break;
+          }
+          case 'n': {
+            string += '\n';
+            break;
+          }
+          case 't': {
+            string += '\t';
+            break;
+          }
+          case '0': {
+            string += '\0';
+            break;
+          }
+          default: {
+            string += '\\' + this.currentChar;
+          }
+        }
+        this.gotoNextChar();
+        continue;
       }
+
+      // if this is an end of the string
+      if (this.isChar('"')) {
+        this.skipChar();
+        break;
+      }
+
       string += this.nextChar;
     }
-    this.skipChar();
-    const object = createObject(NodeType.String, string);
-    return object;
+
+    return createObject(NodeType.String, string);
   }
 
   parseNumber(): AnyNode {
