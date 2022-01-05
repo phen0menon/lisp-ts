@@ -7,35 +7,35 @@ export const enum NodeType {
   Func = 'Func',
 }
 
-export type NodeValueList = Array<Node>;
+export type NodeSymbol = string;
 
-export type NodeBuiltinEval = (node: Node) => Node;
+export type NodeNumeric = number;
+
+export type NodeValueList = Array<AnyNode>;
+
+export type NodeBuiltinEval = (node: AnyNode) => AnyNode;
 
 export type NodeFuncDef = {
-  args: Node;
-  body: Node;
+  args: Node<NodeValueList>;
+  body: Node<NodeValueList>;
 };
 
-export type NodeValue = NodeFuncDef | NodeBuiltinEval | NodeValueList | number | string;
+export type NodeValue = NodeFuncDef | NodeBuiltinEval | NodeValueList | NodeNumeric | NodeSymbol;
 
 export enum NodeCallableFlags {
   Null,
   Builtin = 1 << 0,
   UserDefined = 1 << 1,
 }
-
-export interface Node {
-  val: NodeValue;
+export interface Node<V extends NodeValue> {
+  val: V;
   type: NodeType;
   flags: NodeCallableFlags;
 }
 
-export interface SymbolTable {
-  current: Record<string, Node>;
-  prev: SymbolTable;
-}
+export type AnyNode = Node<NodeValue>;
 
-export type Symtable = Map<string, Node>;
+export type Symtable = Map<string, AnyNode>;
 
 export type Scope = {
   symtable: Symtable;

@@ -1,10 +1,18 @@
-import {Node, NodeType, NodeValue, NodeCallableFlags, NodeFuncDef, NodeBuiltinEval} from './types';
+import {
+  Node,
+  NodeType,
+  NodeValue,
+  NodeCallableFlags,
+  NodeFuncDef,
+  NodeBuiltinEval,
+  AnyNode,
+} from './types';
 
-export function createObject(type: NodeType, val: NodeValue): Node {
+export function createObject<T extends NodeValue>(type: NodeType, val: T): Node<T> {
   return {type, val, flags: NodeCallableFlags.Null};
 }
 
-export function createFuncObject(val: NodeFuncDef): Node {
+export function createFuncObject(val: NodeFuncDef): Node<NodeFuncDef> {
   const obj = createObject(NodeType.Func, val);
   obj.flags = NodeCallableFlags.UserDefined;
   return obj;
@@ -16,7 +24,7 @@ export function createBuiltinObject(handler: NodeBuiltinEval) {
   return obj;
 }
 
-export function makeStringObject(node: Node) {
+export function makeStringObject(node: AnyNode) {
   switch (node.type) {
     case NodeType.String:
       return node;

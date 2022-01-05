@@ -1,12 +1,12 @@
-import {Node, Scope as TScope} from './types';
 import {UndefinedSymbolError} from './errors';
+import {AnyNode, Scope as TScope} from './types';
 
 export class Scope {
   static current: TScope = this.create();
 
   static create(): TScope {
     const scope = {
-      symtable: new Map<string, Node>(),
+      symtable: new Map<string, AnyNode>(),
       prev: null as TScope,
     };
     return scope;
@@ -24,7 +24,7 @@ export class Scope {
     this.current = prev;
   }
 
-  static insertToSymtable(key: string, val: Node): void {
+  static insertToSymtable(key: string, val: AnyNode): void {
     assertKeyNotInSymtable(key);
     this.current.symtable.set(key, val);
   }
@@ -39,7 +39,7 @@ export class Scope {
   }
 }
 
-export function assertSymbolInSymtable(symbol: Node) {
+export function assertSymbolInSymtable(symbol: AnyNode) {
   const {symtable} = Scope.current;
   const strSymbol = symbol.val.toString();
   if (!symtable.has(strSymbol)) {

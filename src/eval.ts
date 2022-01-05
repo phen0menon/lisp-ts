@@ -7,12 +7,14 @@ import {
   NodeCallableFlags,
   NodeBuiltinEval,
   NodeFuncDef,
+  AnyNode,
+  NodeSymbol,
 } from './types';
 
-function evalUserDefinedFunction(func: Node, provided: Node): Node {
-  const params = (provided.val as NodeValueList).slice(1);
-  const args = (func.val as NodeFuncDef).args.val as NodeValueList;
-  const callableBody = ((func.val as NodeFuncDef).body.val as NodeValueList).slice(3);
+function evalUserDefinedFunction(func: Node<NodeFuncDef>, provided: Node<NodeValueList>): AnyNode {
+  const params = provided.val.slice(1);
+  const args = func.val.args.val;
+  const callableBody = func.val.body.val.slice(3);
   if (args.length !== params.length) {
     throw new OperationError(`Function takes ${args.length} but ${params.length} were given`);
   }
@@ -25,30 +27,38 @@ function evalUserDefinedFunction(func: Node, provided: Node): Node {
   return evaluated;
 }
 
-export function evalExpression(expr: Node): Node {
+function evalSymbol(expr: Node<NodeSymbol>): AnyNode {
+  assertSymbolInSymtable(expr);
+  return Scope.getFromSymtable(expr.val.toString());
+}
+
+function evalList(expr: Node<NodeValueList>): AnyNode {
+  const list = expr.val;
+  if (!list.length) return expr;
+  const operand = list[0];
+  const callable = Scope.getFromSymtable(operand.val.toString());
+  if (!callable) {
+    throw new UndefinedSymbolError(operand.val.toString());
+  }
+  const isBuiltin = callable.flags & NodeCallableFlags.Builtin;
+  if (isBuiltin) {
+    const evalBuiltin = callable.val as NodeBuiltinEval;
+    return evalBuiltin(expr);
+  }
+  return evalUserDefinedFunction(callable as Node<NodeFuncDef>, expr as Node<NodeValueList>);
+}
+
+export function evalExpression(expr: AnyNode): AnyNode {
   try {
     switch (expr.type) {
       case NodeType.Number:
       case NodeType.String:
         return expr;
       case NodeType.Symbol: {
-        assertSymbolInSymtable(expr);
-        return Scope.getFromSymtable(expr.val.toString());
+        return evalSymbol(expr as Node<NodeSymbol>);
       }
       case NodeType.List: {
-        const list = expr.val as NodeValueList;
-        if (!list.length) return expr;
-        const operand = list[0];
-        const callable = Scope.getFromSymtable(operand.val.toString());
-        if (!callable) {
-          throw new UndefinedSymbolError(operand.val.toString());
-        }
-        const isBuiltin = callable.flags & NodeCallableFlags.Builtin;
-        if (isBuiltin) {
-          const evalBuiltin = callable.val as NodeBuiltinEval;
-          return evalBuiltin(expr);
-        }
-        return evalUserDefinedFunction(callable, expr);
+        return evalList(expr as Node<NodeValueList>);
       }
       default: {
         console.error(`Unknown expression: ${expr}`);

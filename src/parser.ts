@@ -1,6 +1,6 @@
 import {SyntaxError} from './errors';
 import {createObject} from './helpers';
-import {NodeType, Node} from './types';
+import {NodeType, AnyNode} from './types';
 import {isNumeric, isSymbol} from './utils';
 
 export const enum Symbols {
@@ -46,7 +46,7 @@ export class Parser {
     return this.currentChar === char;
   }
 
-  parseList(): Node {
+  parseList(): AnyNode {
     this.skipChar();
     const list = [];
     while (!this.isChar(Symbols.RPAR)) {
@@ -62,7 +62,7 @@ export class Parser {
     return object;
   }
 
-  parseString(): Node {
+  parseString(): AnyNode {
     this.skipChar();
     let string = '';
     while (!this.isChar(Symbols.DQUOTE)) {
@@ -78,7 +78,7 @@ export class Parser {
     return object;
   }
 
-  parseNumber(): Node {
+  parseNumber(): AnyNode {
     let value = '';
     while (this.hasNextChar() && isNumeric(this.currentChar)) {
       value += this.nextChar;
@@ -88,7 +88,7 @@ export class Parser {
     return object;
   }
 
-  parseSymbol(): Node {
+  parseSymbol(): AnyNode {
     let symbol = '';
     while (this.hasNextChar() && isSymbol(this.currentChar)) {
       symbol += this.nextChar;
@@ -97,7 +97,7 @@ export class Parser {
     return object;
   }
 
-  parse(): Node {
+  parse(): AnyNode {
     switch (this.currentChar) {
       case Symbols.LPAR: {
         return this.parseList();
@@ -126,7 +126,7 @@ export class Parser {
     }
   }
 
-  collect(): Array<Node> {
+  collect(): Array<AnyNode> {
     const lists = [];
     while (this.hasNextChar()) {
       lists.push(this.parse());
