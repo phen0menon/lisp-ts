@@ -10,8 +10,10 @@ import {
   handleBuiltinPrint,
   handleBuiltinTerpri,
   handleBuiltinLtOperator,
+  handleBuiltinEqOperator,
   handleBuiltinGtOperator,
   handleBuiltinPowOperator,
+  handleBuiltinIf,
 } from './builtins';
 import {evalExpression} from './eval';
 import {createBuiltinObject} from './helpers';
@@ -24,15 +26,17 @@ Scope.current.symtable.set('*', createBuiltinObject(handleBuiltinMultOperator));
 Scope.current.symtable.set('/', createBuiltinObject(handleBuiltinDivOperator));
 Scope.current.symtable.set('%', createBuiltinObject(handleBuiltinModOperator));
 Scope.current.symtable.set('<', createBuiltinObject(handleBuiltinLtOperator));
+Scope.current.symtable.set('=', createBuiltinObject(handleBuiltinEqOperator));
 Scope.current.symtable.set('>', createBuiltinObject(handleBuiltinGtOperator));
 Scope.current.symtable.set('**', createBuiltinObject(handleBuiltinPowOperator));
 Scope.current.symtable.set('setq', createBuiltinObject(handleBuiltinSetq));
 Scope.current.symtable.set('print', createBuiltinObject(handleBuiltinPrint));
 Scope.current.symtable.set('defun', createBuiltinObject(handleBuiltinDefun));
 Scope.current.symtable.set('terpri', createBuiltinObject(handleBuiltinTerpri));
+Scope.current.symtable.set('if', createBuiltinObject(handleBuiltinIf));
 
 function main(): void {
-  const code = readFileSync('./examples/sum.lisp', 'utf8');
+  const code = readFileSync('./examples/print.lisp', 'utf8');
   const parser = new Parser(code);
   const lists = parser.collect();
   lists.forEach(list => {

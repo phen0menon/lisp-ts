@@ -3,6 +3,7 @@ import {OperationError} from './errors';
 import {evalExpression} from './eval';
 import {createFuncObject, makeStringObject, createNumericObject, createBoolObject} from './helpers';
 import {AnyNode, Node, NodeBool, NodeNumeric, NodeType, NodeValue, NodeValueList} from './types';
+import {isTruthy} from './utils';
 
 export function evalParams(node: AnyNode): Node<Exclude<NodeValue, NodeValueList>> {
   let currNode = evalExpression(node);
@@ -186,6 +187,29 @@ export function handleBuiltinLtOperator(expr: Node<NodeValueList>): Node<NodeBoo
   }
 }
 
+export function handleBuiltinEqOperator(expr: Node<NodeValueList>): Node<NodeBool> {
+  const list = expr.val;
+  const argslength = list.length - 1;
+  if (argslength < 2) {
+    throw new OperationError("'=' operator can't have less than 2 args");
+  }
+  const a = evalExpression(list[1]);
+  const b = evalExpression(list[2]);
+  if (a.type !== b.type) {
+    throw new OperationError(`'=' operator cannot compare two objects of different types`);
+  }
+  switch (a.type) {
+    case NodeType.Boolean:
+    case NodeType.String:
+    case NodeType.Number:
+      return createBoolObject(a.val === b.val);
+    default:
+      throw new OperationError(
+        `'<' operator can only compare objects of type: boolean, string, number`
+      );
+  }
+}
+
 export function handleBuiltinGtOperator(expr: Node<NodeValueList>): Node<NodeBool> {
   const list = expr.val;
   const argslength = list.length - 1;
@@ -224,4 +248,16 @@ export function handleBuiltinPowOperator(expr: Node<NodeValueList>): Node<NodeNu
     throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
   return createNumericObject(calculateSubtraction(a as Node<NodeNumeric>, b as Node<NodeNumeric>));
+}
+
+export function handleBuiltinIf(expr: Node<NodeValueList>): AnyNode {
+  const list = expr.val.slice(1);
+  if (list.length !== 3) {
+    throw new OperationError(`'if' operator takes exactly 3 arguments, ${list.length} were given`);
+  }
+  const [condExpr, thenExpr, elseExpr] = list;
+  if (isTruthy(evalExpression(condExpr))) {
+    return evalExpression(thenExpr);
+  }
+  return evalExpression(elseExpr);
 }

@@ -1,3 +1,5 @@
+import {AnyNode, NodeType, NodeValueList} from './types';
+
 export function isAlphaNumeric(str: string): boolean {
   for (let i = 0, len = str.length, code = 0; i < len; ++i) {
     code = str.charCodeAt(i);
@@ -14,9 +16,25 @@ export function isAlphaNumeric(str: string): boolean {
 }
 
 export function isSymbol(char: string): boolean {
-  return ['+', '-', '/', '*', '%', '<'].includes(char) || isAlphaNumeric(char);
+  return ['+', '-', '/', '*', '%', '<', '>', '**', '='].includes(char) || isAlphaNumeric(char);
 }
 
 export function isNumeric(number: string): boolean {
   return !isNaN(parseFloat(number)) && !isNaN(+number);
+}
+
+export function isTruthy(node: AnyNode): boolean {
+  switch (node.type) {
+    case NodeType.Func:
+    case NodeType.Number:
+    case NodeType.Boolean:
+      return node.val !== 0 && node.val !== false;
+    case NodeType.List:
+      return (node.val as NodeValueList).length > 0;
+    case NodeType.String:
+      return (node.val as string).length > 0;
+    default: {
+      return false;
+    }
+  }
 }
