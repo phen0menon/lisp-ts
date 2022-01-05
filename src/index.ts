@@ -12,16 +12,16 @@ import {
 import {evalExpression} from './eval';
 import {createBuiltinObject} from './helpers';
 import {Parser} from './parser';
-import {symtable} from './symtable';
+import {Scope} from './scope';
 
-symtable.set('+', createBuiltinObject(handleBuiltinAddOperator));
-symtable.set('-', createBuiltinObject(handleBuiltinSubOperator));
-symtable.set('*', createBuiltinObject(handleBuiltinMultOperator));
-symtable.set('/', createBuiltinObject(handleBuiltinDivOperator));
-symtable.set('%', createBuiltinObject(handleBuiltinModOperator));
-symtable.set('setq', createBuiltinObject(handleBuiltinSetq));
-symtable.set('print', createBuiltinObject(handleBuiltinPrint));
-symtable.set('defun', createBuiltinObject(handleBuiltinDefun));
+Scope.current.symtable.set('+', createBuiltinObject(handleBuiltinAddOperator));
+Scope.current.symtable.set('-', createBuiltinObject(handleBuiltinSubOperator));
+Scope.current.symtable.set('*', createBuiltinObject(handleBuiltinMultOperator));
+Scope.current.symtable.set('/', createBuiltinObject(handleBuiltinDivOperator));
+Scope.current.symtable.set('%', createBuiltinObject(handleBuiltinModOperator));
+Scope.current.symtable.set('setq', createBuiltinObject(handleBuiltinSetq));
+Scope.current.symtable.set('print', createBuiltinObject(handleBuiltinPrint));
+Scope.current.symtable.set('defun', createBuiltinObject(handleBuiltinDefun));
 
 function main(): void {
   const code = readFileSync('./examples/basic.lisp', 'utf8');

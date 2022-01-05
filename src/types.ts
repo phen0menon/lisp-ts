@@ -34,3 +34,10 @@ export interface SymbolTable {
   current: Record<string, Node>;
   prev: SymbolTable;
 }
+
+export type Symtable = Map<string, Node>;
+
+export type Scope = {
+  symtable: Symtable;
+  prev: Scope;
+};

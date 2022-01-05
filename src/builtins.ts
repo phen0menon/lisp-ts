@@ -1,71 +1,86 @@
 import {OperationError} from './errors';
 import {evalExpression} from './eval';
 import {createObject, createFuncObject, makeStringObject} from './helpers';
-import {symtable} from './symtable';
+import {Scope} from './scope';
 import {Node, NodeType, NodeValueList} from './types';
 
 export function getSumTwoNumeric(aObject: Node, bObject: Node): Node {
-  if (aObject.type !== NodeType.Number) {
-    throw new OperationError(`1st argument: cannot accept object of type ${aObject.type}`);
+  const a = aObject.type === NodeType.List ? evalExpression(aObject) : aObject;
+  const b = bObject.type === NodeType.List ? evalExpression(bObject) : bObject;
+
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
   }
 
-  if (bObject.type !== NodeType.Number) {
-    throw new OperationError(`2nd argument: cannot accept object of type ${bObject.type}`);
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
 
-  const result = (aObject.val as number) + (bObject.val as number);
+  const result = (a.val as number) + (b.val as number);
   return createObject(NodeType.Number, result);
 }
 
 export function getSubTwoNumeric(aObject: Node, bObject: Node): Node {
-  if (aObject.type !== NodeType.Number) {
-    throw new OperationError(`1st argument: cannot accept object of type ${aObject.type}`);
+  const a = aObject.type === NodeType.List ? evalExpression(aObject) : aObject;
+  const b = bObject.type === NodeType.List ? evalExpression(bObject) : bObject;
+
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
   }
 
-  if (bObject.type !== NodeType.Number) {
-    throw new OperationError(`2nd argument: cannot accept object of type ${bObject.type}`);
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
 
-  const result = (aObject.val as number) - (bObject.val as number);
+  const result = (a.val as number) - (b.val as number);
   return createObject(NodeType.Number, result);
 }
 
 export function getMultTwoNumeric(aObject: Node, bObject: Node): Node {
-  if (aObject.type !== NodeType.Number) {
-    throw new OperationError(`1st argument: cannot accept object of type ${aObject.type}`);
+  const a = aObject.type === NodeType.List ? evalExpression(aObject) : aObject;
+  const b = bObject.type === NodeType.List ? evalExpression(bObject) : bObject;
+
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
   }
 
-  if (bObject.type !== NodeType.Number) {
-    throw new OperationError(`2nd argument: cannot accept object of type ${bObject.type}`);
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
 
-  const result = (aObject.val as number) * (bObject.val as number);
+  const result = (a.val as number) * (b.val as number);
   return createObject(NodeType.Number, result);
 }
 
 export function getDivTwoNumeric(aObject: Node, bObject: Node): Node {
-  if (aObject.type !== NodeType.Number) {
-    throw new OperationError(`1st argument: cannot accept object of type ${aObject.type}`);
+  const a = aObject.type === NodeType.List ? evalExpression(aObject) : aObject;
+  const b = bObject.type === NodeType.List ? evalExpression(bObject) : bObject;
+
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
   }
 
-  if (bObject.type !== NodeType.Number) {
-    throw new OperationError(`2nd argument: cannot accept object of type ${bObject.type}`);
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
 
-  const result = (aObject.val as number) / (bObject.val as number);
+  const result = (a.val as number) / (b.val as number);
   return createObject(NodeType.Number, result);
 }
 
 export function getModTwoNumeric(aObject: Node, bObject: Node): Node {
-  if (aObject.type !== NodeType.Number) {
-    throw new OperationError(`1st argument: cannot accept object of type ${aObject.type}`);
+  const a = aObject.type === NodeType.List ? evalExpression(aObject) : aObject;
+  const b = bObject.type === NodeType.List ? evalExpression(bObject) : bObject;
+
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
   }
 
-  if (bObject.type !== NodeType.Number) {
-    throw new OperationError(`2nd argument: cannot accept object of type ${bObject.type}`);
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
 
-  const result = (aObject.val as number) % (bObject.val as number);
+  const result = (a.val as number) % (b.val as number);
   return createObject(NodeType.Number, result);
 }
 
@@ -75,7 +90,6 @@ export function handleBuiltinAddOperator(expr: Node): Node {
   if (args < 2) {
     throw new OperationError("Add operator can't have less than 2 args");
   }
-
   let result = evalExpression(list[1]);
   let argumentIndex = 2;
   while (argumentIndex < list.length) {
@@ -91,7 +105,6 @@ export function handleBuiltinMultOperator(expr: Node): Node {
   if (args < 2) {
     throw new OperationError("Multiplication operator can't have less than 2 args");
   }
-
   let result = evalExpression(list[1]);
   let argumentIndex = 2;
   while (argumentIndex < list.length) {
@@ -107,7 +120,6 @@ export function handleBuiltinDivOperator(expr: Node): Node {
   if (args < 2) {
     throw new OperationError("Division operator can't have less than 2 args");
   }
-
   let result = evalExpression(list[1]);
   let argumentIndex = 2;
   while (argumentIndex < list.length) {
@@ -125,7 +137,7 @@ export function handleBuiltinSetq(expr: Node): Node {
   }
   const symname = list[1];
   const symval = evalExpression(list[2]);
-  symtable.set(symname.val.toString(), symval);
+  Scope.insertToSymtable(symname.val.toString(), symval);
   return null;
 }
 
@@ -147,7 +159,6 @@ export function handleBuiltinSubOperator(expr: Node): Node {
   if (args < 2) {
     throw new OperationError("Sub operator can't have less than 2 args");
   }
-
   let result = evalExpression(list[1]);
   let argumentIndex = 2;
   while (argumentIndex < list.length) {
@@ -163,7 +174,6 @@ export function handleBuiltinModOperator(expr: Node): Node {
   if (args < 2) {
     throw new OperationError("Modulo operator can't have less than 2 args");
   }
-
   let result = evalExpression(list[1]);
   let argumentIndex = 2;
   while (argumentIndex < list.length) {
@@ -179,15 +189,12 @@ export function handleBuiltinDefun(expr: Node): Node {
   if (args < 2) {
     throw new OperationError('defun can accept 2 or more arguments');
   }
-
   const fname = list[1].val as string;
   const fparams = list[2];
-
   if (fparams.type !== NodeType.List) {
     throw new OperationError('function arguments must be a list');
   }
-
   const func = createFuncObject({args: fparams, body: expr});
-  symtable.set(fname, func);
+  Scope.insertToSymtable(fname, func);
   return func;
 }
