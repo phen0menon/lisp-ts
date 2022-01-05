@@ -1,5 +1,5 @@
 import {SyntaxError} from './errors';
-import {createObject} from './helpers';
+import {createNumericObject, createObject, createStringObject} from './helpers';
 import {NodeType, AnyNode} from './types';
 import {isNumeric, isSymbol} from './utils';
 
@@ -108,7 +108,7 @@ export class Parser {
       string += this.nextChar;
     }
 
-    return createObject(NodeType.String, string);
+    return createStringObject(string);
   }
 
   parseNumber(): AnyNode {
@@ -117,7 +117,7 @@ export class Parser {
       value += this.nextChar;
     }
     const numericValue = parseInt(value, 10);
-    const object = createObject(NodeType.Number, numericValue);
+    const object = createNumericObject(numericValue);
     return object;
   }
 

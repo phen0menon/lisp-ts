@@ -7,6 +7,27 @@ export const enum NodeType {
   Func = 'Func',
 }
 
+export type NodeValue =
+  | NodeFuncDef
+  | NodeBuiltinEval
+  | NodeValueList
+  | NodeNumeric
+  | NodeSymbol
+  | NodeBool;
+
+export enum NodeCallableFlags {
+  Null,
+  Builtin = 1 << 0,
+  UserDefined = 1 << 1,
+  Lambda = 1 << 2,
+  Evaluated = 1 << 3,
+}
+export interface Node<V extends NodeValue> {
+  val: V;
+  type: NodeType;
+  flags: NodeCallableFlags;
+}
+
 export type NodeBool = boolean;
 
 export type NodeSymbol = string;
@@ -21,25 +42,6 @@ export type NodeFuncDef = {
   args: Node<NodeValueList>;
   body: Node<NodeValueList>;
 };
-
-export type NodeValue =
-  | NodeFuncDef
-  | NodeBuiltinEval
-  | NodeValueList
-  | NodeNumeric
-  | NodeSymbol
-  | NodeBool;
-
-export enum NodeCallableFlags {
-  Null,
-  Builtin = 1 << 0,
-  UserDefined = 1 << 1,
-}
-export interface Node<V extends NodeValue> {
-  val: V;
-  type: NodeType;
-  flags: NodeCallableFlags;
-}
 
 export type AnyNode = Node<NodeValue>;
 

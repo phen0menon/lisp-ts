@@ -1,7 +1,7 @@
 import {Scope} from './scope';
 import {OperationError} from './errors';
 import {evalExpression} from './eval';
-import {createObject, createFuncObject, makeStringObject} from './helpers';
+import {createFuncObject, makeStringObject, createNumericObject, createBoolObject} from './helpers';
 import {AnyNode, Node, NodeBool, NodeNumeric, NodeType, NodeValue, NodeValueList} from './types';
 
 export function evalParams(node: AnyNode): Node<Exclude<NodeValue, NodeValueList>> {
@@ -46,10 +46,7 @@ export function handleBuiltinAddOperator(expr: Node<NodeValueList>): AnyNode {
   if (b.type !== NodeType.Number) {
     throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
-  return createObject(
-    NodeType.Number,
-    calculateAddition(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
-  );
+  return createNumericObject(calculateAddition(a as Node<NodeNumeric>, b as Node<NodeNumeric>));
 }
 
 export function handleBuiltinMultOperator(expr: Node<NodeValueList>): AnyNode {
@@ -66,8 +63,7 @@ export function handleBuiltinMultOperator(expr: Node<NodeValueList>): AnyNode {
   if (b.type !== NodeType.Number) {
     throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
-  return createObject(
-    NodeType.Number,
+  return createNumericObject(
     calculateMultiplication(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
   );
 }
@@ -86,10 +82,7 @@ export function handleBuiltinDivOperator(expr: Node<NodeValueList>): AnyNode {
   if (b.type !== NodeType.Number) {
     throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
-  return createObject(
-    NodeType.Number,
-    calculateDivision(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
-  );
+  return createNumericObject(calculateDivision(a as Node<NodeNumeric>, b as Node<NodeNumeric>));
 }
 
 export function handleBuiltinSetq(expr: Node<NodeValueList>): AnyNode {
@@ -129,10 +122,7 @@ export function handleBuiltinSubOperator(expr: Node<NodeValueList>): AnyNode {
   if (b.type !== NodeType.Number) {
     throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
-  return createObject(
-    NodeType.Number,
-    calculateSubtraction(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
-  );
+  return createNumericObject(calculateSubtraction(a as Node<NodeNumeric>, b as Node<NodeNumeric>));
 }
 
 export function handleBuiltinModOperator(expr: Node<NodeValueList>): AnyNode {
@@ -149,10 +139,7 @@ export function handleBuiltinModOperator(expr: Node<NodeValueList>): AnyNode {
   if (b.type !== NodeType.Number) {
     throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
-  return createObject(
-    NodeType.Number,
-    calculateModulo(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
-  );
+  return createNumericObject(calculateModulo(a as Node<NodeNumeric>, b as Node<NodeNumeric>));
 }
 
 export function handleBuiltinDefun(expr: Node<NodeValueList>): AnyNode {
@@ -185,13 +172,13 @@ export function handleBuiltinLtOperator(expr: Node<NodeValueList>): Node<NodeBoo
   const a = evalExpression(list[1]);
   const b = evalExpression(list[2]);
   if (a.type !== b.type) {
-    throw new OperationError(`'<' operator cannot compare two objects with different types`);
+    throw new OperationError(`'<' operator cannot compare two objects of different types`);
   }
   switch (a.type) {
     case NodeType.Boolean:
     case NodeType.String:
     case NodeType.Number:
-      return createObject(NodeType.Boolean, a.val < b.val);
+      return createBoolObject(a.val < b.val);
     default:
       throw new OperationError(
         `'<' operator can only compare objects of type: boolean, string, number`
@@ -214,7 +201,7 @@ export function handleBuiltinGtOperator(expr: Node<NodeValueList>): Node<NodeBoo
     case NodeType.Boolean:
     case NodeType.String:
     case NodeType.Number:
-      return createObject(NodeType.Boolean, a.val > b.val);
+      return createBoolObject(a.val > b.val);
     default:
       throw new OperationError(
         `'>' operator can only compare objects of type: boolean, string, number`
@@ -236,8 +223,5 @@ export function handleBuiltinPowOperator(expr: Node<NodeValueList>): Node<NodeNu
   if (b.type !== NodeType.Number) {
     throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
   }
-  return createObject(
-    NodeType.Number,
-    calculateSubtraction(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
-  );
+  return createNumericObject(calculateSubtraction(a as Node<NodeNumeric>, b as Node<NodeNumeric>));
 }

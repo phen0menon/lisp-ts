@@ -25,7 +25,6 @@ export class Scope {
   }
 
   static insertToSymtable(key: string, val: AnyNode): void {
-    assertKeyNotInSymtable(key);
     this.current.symtable.set(key, val);
   }
 

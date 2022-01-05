@@ -29,7 +29,13 @@ function evalUserDefinedFunction(func: Node<NodeFuncDef>, provided: Node<NodeVal
 
 function evalSymbol(expr: Node<NodeSymbol>): AnyNode {
   assertSymbolInSymtable(expr);
-  return Scope.getFromSymtable(expr.val.toString());
+  let symbol = Scope.getFromSymtable(expr.val.toString());
+  if (!(symbol.flags & NodeCallableFlags.Evaluated)) {
+    symbol = evalExpression(symbol);
+    symbol.flags |= NodeCallableFlags.Evaluated;
+    Scope.insertToSymtable(expr.val.toString(), symbol);
+  }
+  return symbol;
 }
 
 function evalList(expr: Node<NodeValueList>): AnyNode {
@@ -55,8 +61,6 @@ function evalString(expr: Node<NodeSymbol>): Node<NodeSymbol> {
 export function evalExpression(expr: AnyNode): AnyNode {
   try {
     switch (expr.type) {
-      case NodeType.Number:
-        return expr;
       case NodeType.String:
         return evalString(expr as Node<NodeSymbol>);
       case NodeType.Symbol:
@@ -64,7 +68,6 @@ export function evalExpression(expr: AnyNode): AnyNode {
       case NodeType.List:
         return evalList(expr as Node<NodeValueList>);
       default: {
-        console.error(`Unknown expression: ${expr}`);
         return expr;
       }
     }
