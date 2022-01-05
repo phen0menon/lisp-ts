@@ -9,6 +9,9 @@ import {
   handleBuiltinDefun,
   handleBuiltinPrint,
   handleBuiltinTerpri,
+  handleBuiltinLtOperator,
+  handleBuiltinGtOperator,
+  handleBuiltinPowOperator,
 } from './builtins';
 import {evalExpression} from './eval';
 import {createBuiltinObject} from './helpers';
@@ -20,6 +23,9 @@ Scope.current.symtable.set('-', createBuiltinObject(handleBuiltinSubOperator));
 Scope.current.symtable.set('*', createBuiltinObject(handleBuiltinMultOperator));
 Scope.current.symtable.set('/', createBuiltinObject(handleBuiltinDivOperator));
 Scope.current.symtable.set('%', createBuiltinObject(handleBuiltinModOperator));
+Scope.current.symtable.set('<', createBuiltinObject(handleBuiltinLtOperator));
+Scope.current.symtable.set('>', createBuiltinObject(handleBuiltinGtOperator));
+Scope.current.symtable.set('**', createBuiltinObject(handleBuiltinPowOperator));
 Scope.current.symtable.set('setq', createBuiltinObject(handleBuiltinSetq));
 Scope.current.symtable.set('print', createBuiltinObject(handleBuiltinPrint));
 Scope.current.symtable.set('defun', createBuiltinObject(handleBuiltinDefun));

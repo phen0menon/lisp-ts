@@ -14,7 +14,7 @@ export function isAlphaNumeric(str: string): boolean {
 }
 
 export function isSymbol(char: string): boolean {
-  return ['+', '-', '/', '*', '%'].includes(char) || isAlphaNumeric(char);
+  return ['+', '-', '/', '*', '%', '<'].includes(char) || isAlphaNumeric(char);
 }
 
 export function isNumeric(number: string): boolean {

@@ -2,92 +2,34 @@ import {Scope} from './scope';
 import {OperationError} from './errors';
 import {evalExpression} from './eval';
 import {createObject, createFuncObject, makeStringObject} from './helpers';
-import {AnyNode, Node, NodeFuncDef, NodeNumeric, NodeType, NodeValueList} from './types';
+import {AnyNode, Node, NodeBool, NodeNumeric, NodeType, NodeValue, NodeValueList} from './types';
 
-export function calculateModulo(a: Node<NodeNumeric>, b: Node<NodeNumeric>): Node<NodeNumeric> {
-  return createObject(NodeType.Number, a.val % b.val);
+export function evalParams(node: AnyNode): Node<Exclude<NodeValue, NodeValueList>> {
+  let currNode = evalExpression(node);
+  while (currNode.type === NodeType.List) {
+    currNode = evalExpression(currNode);
+  }
+  return currNode as Node<Exclude<NodeValue, NodeValueList>>;
 }
 
-export function calculateAddition(a: Node<NodeNumeric>, b: Node<NodeNumeric>): Node<NodeNumeric> {
-  return createObject(NodeType.Number, a.val + b.val);
+export function calculateModulo(a: Node<NodeNumeric>, b: Node<NodeNumeric>): NodeNumeric {
+  return a.val % b.val;
 }
 
-export function calculateSubtraction(
-  a: Node<NodeNumeric>,
-  b: Node<NodeNumeric>
-): Node<NodeNumeric> {
-  return createObject(NodeType.Number, a.val - b.val);
+export function calculateAddition(a: Node<NodeNumeric>, b: Node<NodeNumeric>): NodeNumeric {
+  return a.val + b.val;
 }
 
-export function calculateDivision(a: Node<NodeNumeric>, b: Node<NodeNumeric>): Node<NodeNumeric> {
-  return createObject(NodeType.Number, a.val / b.val);
+export function calculateSubtraction(a: Node<NodeNumeric>, b: Node<NodeNumeric>): NodeNumeric {
+  return a.val - b.val;
 }
 
-export function calculateMultiplication(
-  a: Node<NodeNumeric>,
-  b: Node<NodeNumeric>
-): Node<NodeNumeric> {
-  return createObject(NodeType.Number, a.val * b.val);
+export function calculateDivision(a: Node<NodeNumeric>, b: Node<NodeNumeric>): NodeNumeric {
+  return a.val / b.val;
 }
 
-export function invokeAddition(aObject: AnyNode, bObject: AnyNode): Node<NodeNumeric> {
-  const a = aObject.type === NodeType.List ? evalExpression(aObject) : aObject;
-  const b = bObject.type === NodeType.List ? evalExpression(bObject) : bObject;
-  if (a.type !== NodeType.Number) {
-    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
-  }
-  if (b.type !== NodeType.Number) {
-    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
-  }
-  return calculateAddition(a as Node<NodeNumeric>, b as Node<NodeNumeric>);
-}
-
-export function invokeSubtraction(aObject: AnyNode, bObject: AnyNode): AnyNode {
-  const a = aObject.type === NodeType.List ? evalExpression(aObject) : aObject;
-  const b = bObject.type === NodeType.List ? evalExpression(bObject) : bObject;
-  if (a.type !== NodeType.Number) {
-    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
-  }
-  if (b.type !== NodeType.Number) {
-    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
-  }
-  return calculateSubtraction(a as Node<NodeNumeric>, b as Node<NodeNumeric>);
-}
-
-export function invokeMultiplication(aObject: AnyNode, bObject: AnyNode): AnyNode {
-  const a = aObject.type === NodeType.List ? evalExpression(aObject) : aObject;
-  const b = bObject.type === NodeType.List ? evalExpression(bObject) : bObject;
-  if (a.type !== NodeType.Number) {
-    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
-  }
-  if (b.type !== NodeType.Number) {
-    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
-  }
-  return calculateMultiplication(a as Node<NodeNumeric>, b as Node<NodeNumeric>);
-}
-
-export function invokeDivision(aObject: AnyNode, bObject: AnyNode): AnyNode {
-  const a = aObject.type === NodeType.List ? evalExpression(aObject) : aObject;
-  const b = bObject.type === NodeType.List ? evalExpression(bObject) : bObject;
-  if (a.type !== NodeType.Number) {
-    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
-  }
-  if (b.type !== NodeType.Number) {
-    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
-  }
-  return calculateDivision(a as Node<NodeNumeric>, b as Node<NodeNumeric>);
-}
-
-export function invokeModulo(aObject: AnyNode, bObject: AnyNode): Node<NodeNumeric> {
-  const a = aObject.type === NodeType.List ? evalExpression(aObject) : aObject;
-  const b = bObject.type === NodeType.List ? evalExpression(bObject) : bObject;
-  if (a.type !== NodeType.Number) {
-    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
-  }
-  if (b.type !== NodeType.Number) {
-    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
-  }
-  return calculateModulo(a as Node<NodeNumeric>, b as Node<NodeNumeric>);
+export function calculateMultiplication(a: Node<NodeNumeric>, b: Node<NodeNumeric>): NodeNumeric {
+  return a.val * b.val;
 }
 
 export function handleBuiltinAddOperator(expr: Node<NodeValueList>): AnyNode {
@@ -96,13 +38,18 @@ export function handleBuiltinAddOperator(expr: Node<NodeValueList>): AnyNode {
   if (args < 2) {
     throw new OperationError("Add operator can't have less than 2 args");
   }
-  let result = evalExpression(list[1]);
-  let argumentIndex = 2;
-  while (argumentIndex < list.length) {
-    const operand = evalExpression(list[argumentIndex++]);
-    result = invokeAddition(result, operand);
+  const a = evalParams(list[1]);
+  const b = evalParams(list[2]);
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
   }
-  return result;
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
+  }
+  return createObject(
+    NodeType.Number,
+    calculateAddition(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
+  );
 }
 
 export function handleBuiltinMultOperator(expr: Node<NodeValueList>): AnyNode {
@@ -111,13 +58,18 @@ export function handleBuiltinMultOperator(expr: Node<NodeValueList>): AnyNode {
   if (args < 2) {
     throw new OperationError("Multiplication operator can't have less than 2 args");
   }
-  let result = evalExpression(list[1]);
-  let argumentIndex = 2;
-  while (argumentIndex < list.length) {
-    const operand = evalExpression(list[argumentIndex++]);
-    result = invokeMultiplication(result, operand);
+  const a = evalParams(list[1]);
+  const b = evalParams(list[2]);
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
   }
-  return result;
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
+  }
+  return createObject(
+    NodeType.Number,
+    calculateMultiplication(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
+  );
 }
 
 export function handleBuiltinDivOperator(expr: Node<NodeValueList>): AnyNode {
@@ -126,13 +78,18 @@ export function handleBuiltinDivOperator(expr: Node<NodeValueList>): AnyNode {
   if (args < 2) {
     throw new OperationError("Division operator can't have less than 2 args");
   }
-  let result = evalExpression(list[1]);
-  let argumentIndex = 2;
-  while (argumentIndex < list.length) {
-    const operand = evalExpression(list[argumentIndex++]);
-    result = invokeDivision(result, operand);
+  const a = evalParams(list[1]);
+  const b = evalParams(list[2]);
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
   }
-  return result;
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
+  }
+  return createObject(
+    NodeType.Number,
+    calculateDivision(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
+  );
 }
 
 export function handleBuiltinSetq(expr: Node<NodeValueList>): AnyNode {
@@ -164,13 +121,18 @@ export function handleBuiltinSubOperator(expr: Node<NodeValueList>): AnyNode {
   if (args < 2) {
     throw new OperationError("Sub operator can't have less than 2 args");
   }
-  let result = evalExpression(list[1]);
-  let argumentIndex = 2;
-  while (argumentIndex < list.length) {
-    const operand = evalExpression(list[argumentIndex++]);
-    result = invokeSubtraction(result, operand);
+  const a = evalParams(list[1]);
+  const b = evalParams(list[2]);
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
   }
-  return result;
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
+  }
+  return createObject(
+    NodeType.Number,
+    calculateSubtraction(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
+  );
 }
 
 export function handleBuiltinModOperator(expr: Node<NodeValueList>): AnyNode {
@@ -179,13 +141,18 @@ export function handleBuiltinModOperator(expr: Node<NodeValueList>): AnyNode {
   if (args < 2) {
     throw new OperationError("Modulo operator can't have less than 2 args");
   }
-  let result = evalExpression(list[1]);
-  let argumentIndex = 2;
-  while (argumentIndex < list.length) {
-    const operand = evalExpression(list[argumentIndex++]);
-    result = invokeModulo(result, operand);
+  const a = evalExpression(list[1]);
+  const b = evalExpression(list[2]);
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
   }
-  return result;
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
+  }
+  return createObject(
+    NodeType.Number,
+    calculateModulo(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
+  );
 }
 
 export function handleBuiltinDefun(expr: Node<NodeValueList>): AnyNode {
@@ -207,4 +174,70 @@ export function handleBuiltinDefun(expr: Node<NodeValueList>): AnyNode {
 export function handleBuiltinTerpri(expr: Node<NodeValueList>): Node<NodeValueList> {
   console.log('');
   return expr;
+}
+
+export function handleBuiltinLtOperator(expr: Node<NodeValueList>): Node<NodeBool> {
+  const list = expr.val;
+  const argslength = list.length - 1;
+  if (argslength < 2) {
+    throw new OperationError("'<' operator can't have less than 2 args");
+  }
+  const a = evalExpression(list[1]);
+  const b = evalExpression(list[2]);
+  if (a.type !== b.type) {
+    throw new OperationError(`'<' operator cannot compare two objects with different types`);
+  }
+  switch (a.type) {
+    case NodeType.Boolean:
+    case NodeType.String:
+    case NodeType.Number:
+      return createObject(NodeType.Boolean, a.val < b.val);
+    default:
+      throw new OperationError(
+        `'<' operator can only compare objects of type: boolean, string, number`
+      );
+  }
+}
+
+export function handleBuiltinGtOperator(expr: Node<NodeValueList>): Node<NodeBool> {
+  const list = expr.val;
+  const argslength = list.length - 1;
+  if (argslength < 2) {
+    throw new OperationError("'>' operator can't have less than 2 args");
+  }
+  const a = evalExpression(list[1]);
+  const b = evalExpression(list[2]);
+  if (a.type !== b.type) {
+    throw new OperationError(`'>' operator cannot compare two objects with different types`);
+  }
+  switch (a.type) {
+    case NodeType.Boolean:
+    case NodeType.String:
+    case NodeType.Number:
+      return createObject(NodeType.Boolean, a.val > b.val);
+    default:
+      throw new OperationError(
+        `'>' operator can only compare objects of type: boolean, string, number`
+      );
+  }
+}
+
+export function handleBuiltinPowOperator(expr: Node<NodeValueList>): Node<NodeNumeric> {
+  const list = expr.val;
+  const argslength = list.length - 1;
+  if (argslength < 2) {
+    throw new OperationError("'**' operator can't have less than 2 args");
+  }
+  const a = evalExpression(list[1]);
+  const b = evalExpression(list[2]);
+  if (a.type !== NodeType.Number) {
+    throw new OperationError(`1st argument: cannot accept object of type ${a.type}`);
+  }
+  if (b.type !== NodeType.Number) {
+    throw new OperationError(`2nd argument: cannot accept object of type ${b.type}`);
+  }
+  return createObject(
+    NodeType.Number,
+    calculateSubtraction(a as Node<NodeNumeric>, b as Node<NodeNumeric>)
+  );
 }

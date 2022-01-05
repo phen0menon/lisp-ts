@@ -29,6 +29,7 @@ export function makeStringObject(node: AnyNode) {
     case NodeType.String:
       return node;
     case NodeType.Number:
+    case NodeType.Boolean:
       return createObject(NodeType.String, node.val.toString());
     default:
       return null;

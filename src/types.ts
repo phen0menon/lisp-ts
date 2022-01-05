@@ -7,6 +7,8 @@ export const enum NodeType {
   Func = 'Func',
 }
 
+export type NodeBool = boolean;
+
 export type NodeSymbol = string;
 
 export type NodeNumeric = number;
@@ -20,7 +22,13 @@ export type NodeFuncDef = {
   body: Node<NodeValueList>;
 };
 
-export type NodeValue = NodeFuncDef | NodeBuiltinEval | NodeValueList | NodeNumeric | NodeSymbol;
+export type NodeValue =
+  | NodeFuncDef
+  | NodeBuiltinEval
+  | NodeValueList
+  | NodeNumeric
+  | NodeSymbol
+  | NodeBool;
 
 export enum NodeCallableFlags {
   Null,
