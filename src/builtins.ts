@@ -1,7 +1,13 @@
 import {Scope} from './scope';
 import {OperationError} from './errors';
 import {evalExpression} from './eval';
-import {createFuncObject, makeStringObject, createNumericObject, createBoolObject} from './helpers';
+import {
+  createFuncObject,
+  makeStringObject,
+  createNumericObject,
+  createBoolObject,
+  createObject,
+} from './helpers';
 import {AnyNode, Node, NodeBool, NodeNumeric, NodeType, NodeValue, NodeValueList} from './types';
 import {isTruthy} from './utils';
 
@@ -149,12 +155,15 @@ export function handleBuiltinDefun(expr: Node<NodeValueList>): AnyNode {
   if (args < 2) {
     throw new OperationError('defun can accept 2 or more arguments');
   }
-  const fname = list[1].val as string;
+  const fname = list[1].val.toString();
   const fparams = list[2];
   if (fparams.type !== NodeType.List) {
     throw new OperationError('function arguments must be a list');
   }
-  const func = createFuncObject({args: fparams as Node<NodeValueList>, body: expr});
+  const func = createFuncObject({
+    args: fparams as Node<NodeValueList>,
+    body: createObject(NodeType.List, expr.val.slice(3)),
+  });
   Scope.insertToSymtable(fname, func);
   return func;
 }

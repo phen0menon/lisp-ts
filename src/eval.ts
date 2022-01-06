@@ -9,20 +9,21 @@ import {
   NodeFuncDef,
   AnyNode,
   NodeSymbol,
+  Symtable,
 } from './types';
 
-function evalUserDefinedFunction(func: Node<NodeFuncDef>, provided: Node<NodeValueList>): AnyNode {
-  const params = provided.val.slice(1);
+function evalUserDefinedFunction(func: Node<NodeFuncDef>, params: NodeValueList): AnyNode {
   const args = func.val.args.val;
-  const callableBody = func.val.body.val.slice(3);
+  const body = func.val.body.val;
   if (args.length !== params.length) {
     throw new OperationError(`Function takes ${args.length} but ${params.length} were given`);
   }
-  Scope.enter();
-  args.forEach((argument, index) => {
-    Scope.insertToSymtable(argument.val.toString(), params[index]);
-  });
-  const evaluated = callableBody.reduce((_, expr) => evalExpression(expr), null);
+  const localSymbols = args.reduce((map: Symtable, arg: AnyNode, index: number) => {
+    map.set(arg.val.toString(), evalExpression(params[index]));
+    return map;
+  }, new Map() as Symtable);
+  Scope.enter(localSymbols);
+  const evaluated = body.reduce((_, expr) => evalExpression(expr), null);
   Scope.exit();
   return evaluated;
 }
@@ -51,7 +52,8 @@ function evalList(expr: Node<NodeValueList>): AnyNode {
     const evalBuiltin = callable.val as NodeBuiltinEval;
     return evalBuiltin(expr);
   }
-  return evalUserDefinedFunction(callable as Node<NodeFuncDef>, expr as Node<NodeValueList>);
+  const params = expr.val.slice(1);
+  return evalUserDefinedFunction(callable as Node<NodeFuncDef>, params as NodeValueList);
 }
 
 function evalString(expr: Node<NodeSymbol>): Node<NodeSymbol> {

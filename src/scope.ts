@@ -1,19 +1,19 @@
 import {UndefinedSymbolError} from './errors';
-import {AnyNode, Scope as TScope} from './types';
+import {AnyNode, Scope as TScope, Symtable} from './types';
 
 export class Scope {
   static current: TScope = this.create();
 
-  static create(): TScope {
+  static create(map?: Symtable): TScope {
     const scope = {
-      symtable: new Map<string, AnyNode>(),
+      symtable: map ?? new Map<string, AnyNode>(),
       prev: null as TScope,
     };
     return scope;
   }
 
-  static enter() {
-    const scope = this.create();
+  static enter(map?: Symtable) {
+    const scope = this.create(map);
     scope.prev = this.current;
     this.current = scope;
   }

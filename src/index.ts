@@ -36,14 +36,12 @@ Scope.current.symtable.set('terpri', createBuiltinObject(handleBuiltinTerpri));
 Scope.current.symtable.set('if', createBuiltinObject(handleBuiltinIf));
 
 function main(): void {
-  const code = readFileSync('./examples/print.lisp', 'utf8');
+  const code = readFileSync('./examples/factorial.lisp', 'utf8');
   const parser = new Parser(code);
   const lists = parser.collect();
   lists.forEach(list => {
     evalExpression(list);
   });
-
-  // console.dir(symtable, {depth: null});
 }
 
 if (require.main === module) {
