@@ -14,13 +14,9 @@ export const enum Symbols {
 }
 
 export class Parser {
-  private position: number;
-  private readonly code: string;
+  private position: number = 0;
 
-  constructor(code: string) {
-    this.code = code;
-    this.position = 0;
-  }
+  constructor(private readonly code: string) {}
 
   get length(): number {
     return this.code.length;
