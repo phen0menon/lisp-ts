@@ -110,8 +110,9 @@ export function handleBuiltinPrint(expr: Node<NodeValueList>): AnyNode {
   while (argumentIndex < list.length) {
     const argument = evalExpression(list[argumentIndex++]);
     const strObj = makeStringObject(argument);
-    console.log(strObj.val);
+    process.stdout.write(strObj.val.toString());
   }
+  console.log();
   return null;
 }
 
@@ -169,7 +170,7 @@ export function handleBuiltinDefun(expr: Node<NodeValueList>): AnyNode {
 }
 
 export function handleBuiltinTerpri(expr: Node<NodeValueList>): Node<NodeValueList> {
-  console.log('');
+  console.log();
   return expr;
 }
 
