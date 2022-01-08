@@ -30,7 +30,7 @@ function evalUserDefinedFunction(func: Node<NodeFuncDef>, params: NodeValueList)
 
 function evalSymbol(expr: Node<NodeSymbol>): AnyNode {
   assertSymbolInSymtable(expr);
-  let symbol = Scope.getFromSymtable(expr.val.toString());
+  let symbol = Scope.getFromSymtable(expr.val);
   if (!(symbol.flags & NodeCallableFlags.Evaluated)) {
     symbol = evalExpression(symbol);
     symbol.flags |= NodeCallableFlags.Evaluated;
@@ -42,10 +42,10 @@ function evalSymbol(expr: Node<NodeSymbol>): AnyNode {
 function evalList(expr: Node<NodeValueList>): AnyNode {
   const list = expr.val;
   if (!list.length) return expr;
-  const operand = list[0];
-  const callable = Scope.getFromSymtable(operand.val.toString());
+  const [operator] = list;
+  const callable = Scope.getFromSymtable(operator.val);
   if (!callable) {
-    throw new UndefinedSymbolError(operand.val.toString());
+    throw new UndefinedSymbolError(operator.val.toString());
   }
   const isBuiltin = callable.flags & NodeCallableFlags.Builtin;
   if (isBuiltin) {

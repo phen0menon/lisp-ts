@@ -28,10 +28,10 @@ export class Scope {
     this.current.symtable.set(key, val);
   }
 
-  static getFromSymtable(key: string) {
+  static getFromSymtable<T extends Object>(key: T) {
     let iter = this.current;
     while (true) {
-      if (iter.symtable.has(key)) return iter.symtable.get(key);
+      if (iter.symtable.has(key.toString())) return iter.symtable.get(key.toString());
       if (!iter.prev) return null;
       iter = iter.prev;
     }
