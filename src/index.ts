@@ -15,6 +15,7 @@ import {
   handleBuiltinPowOperator,
   handleBuiltinIf,
 } from './builtins';
+import {Cursor} from './cursor';
 import {evalExpression} from './eval';
 import {createBuiltinObject} from './helpers';
 import {Parser} from './parser';
@@ -37,7 +38,8 @@ Scope.current.symtable.set('if', createBuiltinObject(handleBuiltinIf));
 
 function main(): void {
   const code = readFileSync('./examples/factorial.lisp', 'utf8');
-  const parser = new Parser(code);
+  const cursor = new Cursor(code);
+  const parser = new Parser(code, cursor);
   const lists = parser.collect();
   lists.forEach(list => {
     evalExpression(list);

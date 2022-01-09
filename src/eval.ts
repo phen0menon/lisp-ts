@@ -52,7 +52,7 @@ function evalList(expr: Node<NodeValueList>): AnyNode {
     const evalBuiltin = callable.val as NodeBuiltinEval;
     return evalBuiltin(expr);
   }
-  const params = expr.val.slice(1);
+  const [_, ...params] = expr.val;
   return evalUserDefinedFunction(callable as Node<NodeFuncDef>, params as NodeValueList);
 }
 
@@ -61,22 +61,15 @@ function evalString(expr: Node<NodeSymbol>): Node<NodeSymbol> {
 }
 
 export function evalExpression(expr: AnyNode): AnyNode {
-  try {
-    switch (expr.type) {
-      case NodeType.String:
-        return evalString(expr as Node<NodeSymbol>);
-      case NodeType.Symbol:
-        return evalSymbol(expr as Node<NodeSymbol>);
-      case NodeType.List:
-        return evalList(expr as Node<NodeValueList>);
-      default: {
-        return expr;
-      }
-    }
-  } catch (err) {
-    console.log(err);
-    if (err instanceof UndefinedSymbolError) {
-      return null;
+  switch (expr.type) {
+    case NodeType.String:
+      return evalString(expr as Node<NodeSymbol>);
+    case NodeType.Symbol:
+      return evalSymbol(expr as Node<NodeSymbol>);
+    case NodeType.List:
+      return evalList(expr as Node<NodeValueList>);
+    default: {
+      return expr;
     }
   }
 }

@@ -15,6 +15,11 @@ export type NodeValue =
   | NodeSymbol
   | NodeBool;
 
+export type InterpreterLocation = {
+  line: number;
+  column: number;
+};
+
 export enum NodeCallableFlags {
   Null,
   Builtin = 1 << 0,
@@ -22,6 +27,7 @@ export enum NodeCallableFlags {
   Lambda = 1 << 2,
   Evaluated = 1 << 3,
 }
+
 export interface Node<V extends NodeValue> {
   val: V;
   type: NodeType;
@@ -51,3 +57,13 @@ export type Scope = {
   symtable: Symtable;
   prev: Scope;
 };
+
+export const enum Symbols {
+  LPAR = '(',
+  RPAR = ')',
+  SPACE = ' ',
+  NSPACE = '',
+  CR = '\r',
+  LF = '\n',
+  DQUOTE = '"',
+}

@@ -1,37 +1,38 @@
+import util from 'util';
+
+import {Cursor} from './cursor';
 import {SyntaxError} from './errors';
 import {createNumericObject, createObject, createStringObject} from './helpers';
-import {NodeType, AnyNode} from './types';
+import {NodeType, AnyNode, Symbols, InterpreterLocation} from './types';
 import {isNumeric, isSymbol} from './utils';
-
-export const enum Symbols {
-  LPAR = '(',
-  RPAR = ')',
-  SPACE = ' ',
-  NSPACE = '',
-  CARRETURN = '\r',
-  NEWLINE = '\n',
-  DQUOTE = '"',
-}
 
 export class Parser {
   private position: number = 0;
+  private line: number = 0;
+  private column: number = 0;
 
-  constructor(private readonly code: string) {}
+  constructor(private readonly code: string, private readonly cursor: Cursor) {}
 
   get length(): number {
     return this.code.length;
-  }
-
-  get nextChar(): string {
-    return this.code[this.position++];
   }
 
   get currentChar(): string {
     return this.code[this.position];
   }
 
+  get cursorPos(): InterpreterLocation {
+    return {line: this.line, column: this.column};
+  }
+
+  consumeChar(): string {
+    this.column++;
+    return this.code[this.position++];
+  }
+
   skipChar(): void {
-    ++this.position;
+    this.column++;
+    this.position++;
   }
 
   hasNextChar(): boolean {
@@ -39,6 +40,7 @@ export class Parser {
   }
 
   gotoNextChar(): void {
+    this.column++;
     this.position++;
   }
 
@@ -52,7 +54,13 @@ export class Parser {
     while (!this.isChar(Symbols.RPAR)) {
       if (!this.hasNextChar()) {
         throw new SyntaxError(
-          `Mismatched input: expected '${Symbols.RPAR}' at the end of the file.`
+          util.format(
+            'Mismatched input: expected %s at the end of a list at %i:%i\n%s',
+            Symbols.RPAR,
+            this.cursorPos.line,
+            this.cursorPos.column,
+            this.cursor.getFileChunk(this.cursorPos)
+          )
         );
       }
       list.push(this.parse());
@@ -69,7 +77,11 @@ export class Parser {
       // if this is an escape character
       if (this.isChar('\\')) {
         this.gotoNextChar();
-        if (!this.hasNextChar()) throw new SyntaxError(`Unexpected end of file`);
+
+        if (!this.hasNextChar()) {
+          throw new SyntaxError(`Unexpected end of file, escape character expected`);
+        }
+
         switch (this.currentChar) {
           case 'r': {
             string += '\r';
@@ -101,7 +113,7 @@ export class Parser {
         break;
       }
 
-      string += this.nextChar;
+      string += this.consumeChar();
     }
 
     return createStringObject(string);
@@ -110,7 +122,7 @@ export class Parser {
   parseNumber(): AnyNode {
     let value = '';
     while (this.hasNextChar() && isNumeric(this.currentChar)) {
-      value += this.nextChar;
+      value += this.consumeChar();
     }
     const numericValue = parseInt(value, 10);
     const object = createNumericObject(numericValue);
@@ -120,7 +132,7 @@ export class Parser {
   parseSymbol(): AnyNode {
     let symbol = '';
     while (this.hasNextChar() && isSymbol(this.currentChar)) {
-      symbol += this.nextChar;
+      symbol += this.consumeChar();
     }
     const object = createObject(NodeType.Symbol, symbol);
     return object;
@@ -131,10 +143,16 @@ export class Parser {
       case Symbols.LPAR: {
         return this.parseList();
       }
+      case Symbols.CR: {
+        this.skipChar();
+        return this.parse();
+      }
+      case Symbols.LF: {
+        this.column = 0;
+        this.line++;
+      }
       case Symbols.SPACE:
-      case Symbols.NSPACE:
-      case Symbols.CARRETURN:
-      case Symbols.NEWLINE: {
+      case Symbols.NSPACE: {
         this.skipChar();
         return this.parse();
       }
@@ -150,7 +168,15 @@ export class Parser {
           return this.parseSymbol();
         }
 
-        throw new SyntaxError(`Unexpected symbol: ${this.currentChar}`);
+        throw new SyntaxError(
+          util.format(
+            'Unexpected symbol: %s at %i:%i\n%s',
+            this.currentChar,
+            this.line,
+            this.column,
+            this.cursor.getFileChunk(this.cursorPos)
+          )
+        );
       }
     }
   }

@@ -47,7 +47,7 @@ export function evalArgument(node: AnyNode): Node<Exclude<NodeValue, NodeValueLi
 }
 
 export function handleBuiltinAddOperator(expr: Node<NodeValueList>): Node<NodeNumeric> {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'add');
   const leftArg = validateArgumentType(evalArgument(args[0]), [
     NodeType.Number,
@@ -59,7 +59,7 @@ export function handleBuiltinAddOperator(expr: Node<NodeValueList>): Node<NodeNu
 }
 
 export function handleBuiltinMultOperator(expr: Node<NodeValueList>): AnyNode {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'mult');
   const leftArg = validateArgumentType(evalArgument(args[0]), [
     NodeType.Number,
@@ -71,7 +71,7 @@ export function handleBuiltinMultOperator(expr: Node<NodeValueList>): AnyNode {
 }
 
 export function handleBuiltinDivOperator(expr: Node<NodeValueList>): Node<NodeNumeric> {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'div');
   const leftArg = validateArgumentType(evalArgument(args[0]), [
     NodeType.Number,
@@ -83,7 +83,7 @@ export function handleBuiltinDivOperator(expr: Node<NodeValueList>): Node<NodeNu
 }
 
 export function handleBuiltinSetq(expr: Node<NodeValueList>): null {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'setq');
   const symname = args[0].val as string;
   const symval = evalExpression(args[1]);
@@ -104,7 +104,7 @@ export function handleBuiltinPrint(expr: Node<NodeValueList>): null {
 }
 
 export function handleBuiltinSubOperator(expr: Node<NodeValueList>): Node<NodeNumeric> {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'sub');
   const leftArg = validateArgumentType(evalArgument(args[0]), [
     NodeType.Number,
@@ -116,7 +116,7 @@ export function handleBuiltinSubOperator(expr: Node<NodeValueList>): Node<NodeNu
 }
 
 export function handleBuiltinModOperator(expr: Node<NodeValueList>): Node<NodeNumeric> {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'mod');
   const leftArg = validateArgumentType(evalArgument(args[0]), [
     NodeType.Number,
@@ -128,7 +128,7 @@ export function handleBuiltinModOperator(expr: Node<NodeValueList>): Node<NodeNu
 }
 
 export function handleBuiltinDefun(expr: Node<NodeValueList>): AnyNode {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'defun');
 
   const fname = (
@@ -145,9 +145,12 @@ export function handleBuiltinDefun(expr: Node<NodeValueList>): AnyNode {
     'function arguments must be a list'
   ) as Node<NodeValueList>;
 
+  const bodyArgs = expr.val.slice(3);
+  const fbody = createObject(NodeType.List, bodyArgs);
+
   const func = createFuncObject({
     args: fparams,
-    body: createObject(NodeType.List, expr.val.slice(3)),
+    body: fbody,
   });
 
   Scope.insertToSymtable(fname, func);
@@ -160,7 +163,7 @@ export function handleBuiltinTerpri(expr: Node<NodeValueList>): Node<NodeValueLi
 }
 
 export function handleBuiltinLtOperator(expr: Node<NodeValueList>): Node<NodeBool> {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, '<');
 
   const leftArg = evalArgument(args[0]);
@@ -183,7 +186,7 @@ export function handleBuiltinLtOperator(expr: Node<NodeValueList>): Node<NodeBoo
 }
 
 export function handleBuiltinEqOperator(expr: Node<NodeValueList>): Node<NodeBool> {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, '=');
 
   const leftArg = evalArgument(args[0]);
@@ -206,7 +209,7 @@ export function handleBuiltinEqOperator(expr: Node<NodeValueList>): Node<NodeBoo
 }
 
 export function handleBuiltinGtOperator(expr: Node<NodeValueList>): Node<NodeBool> {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, '>');
 
   const leftArg = evalArgument(args[0]);
@@ -229,7 +232,7 @@ export function handleBuiltinGtOperator(expr: Node<NodeValueList>): Node<NodeBoo
 }
 
 export function handleBuiltinPowOperator(expr: Node<NodeValueList>): Node<NodeNumeric> {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'pow');
   const leftArg = validateArgumentType(evalArgument(args[0]), [
     NodeType.Number,
@@ -241,7 +244,7 @@ export function handleBuiltinPowOperator(expr: Node<NodeValueList>): Node<NodeNu
 }
 
 export function handleBuiltinIf(expr: Node<NodeValueList>): AnyNode {
-  const args = expr.val.slice(1);
+  const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'if', 3);
   const [condExpr, thenExpr, elseExpr] = args;
   if (isTruthy(evalExpression(condExpr))) {
