@@ -1,63 +1,20 @@
-export class UndefinedSymbolError {
+export class UndefinedSymbolError extends Error {
   constructor(symbol: string) {
     const message = `symbol '${symbol}' not found.`;
-    const error = Error(message);
-
-    Object.defineProperty(error, 'message', {
-      get() {
-        return message;
-      },
-    });
-
-    Object.defineProperty(error, 'name', {
-      get() {
-        return 'UndefinedSymbolError';
-      },
-    });
-
-    Error.captureStackTrace(error, UndefinedSymbolError);
-    return error;
+    super(message);
+    this.name = this.constructor.name;
   }
 }
 
-export class SyntaxError {
+export class SyntaxError extends Error {
   constructor(message: string) {
-    const error = Error(message);
-
-    Object.defineProperty(error, 'message', {
-      get() {
-        return message;
-      },
-    });
-
-    Object.defineProperty(error, 'name', {
-      get() {
-        return 'SyntaxError';
-      },
-    });
-
-    Error.captureStackTrace(error, SyntaxError);
-    return error;
+    super(message);
+    this.name = this.constructor.name;
   }
 }
-export class OperationError {
-  constructor(errMsg: string) {
-    const message = `${errMsg}`;
-    const error = Error(message);
-
-    Object.defineProperty(error, 'message', {
-      get() {
-        return message;
-      },
-    });
-
-    Object.defineProperty(error, 'name', {
-      get() {
-        return 'OperationError';
-      },
-    });
-
-    Error.captureStackTrace(error, OperationError);
-    return error;
+export class OperationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = this.constructor.name;
   }
 }
