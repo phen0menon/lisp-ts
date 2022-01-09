@@ -12,6 +12,7 @@ import {
   AnyNode,
   Node,
   NodeBool,
+  NodeCallableFlags,
   NodeNumeric,
   NodeSymbol,
   NodeType,
@@ -251,6 +252,17 @@ export function handleBuiltinIf(expr: Node<NodeValueList>): AnyNode {
     return evalExpression(thenExpr);
   }
   return evalExpression(elseExpr);
+}
+
+export function handleBuiltinCons(expr: Node<NodeValueList>): Node<NodeValueList> {
+  const list = createObject<NodeValueList>(NodeType.List, []);
+  list.flags |= NodeCallableFlags.Evaluated;
+
+  const args = expr.val.slice(1);
+  const appendedList = args.map(evalExpression);
+  list.val.push(...appendedList);
+
+  return list;
 }
 
 export function calculateMod(a: Node<NodeNumeric>, b: Node<NodeNumeric>): NodeNumeric {

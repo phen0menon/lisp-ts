@@ -14,6 +14,7 @@ import {
   handleBuiltinGtOperator,
   handleBuiltinPowOperator,
   handleBuiltinIf,
+  handleBuiltinCons,
 } from './builtins';
 import {Cursor} from './cursor';
 import {evalExpression} from './eval';
@@ -35,6 +36,7 @@ Scope.current.symtable.set('print', createBuiltinObject(handleBuiltinPrint));
 Scope.current.symtable.set('defun', createBuiltinObject(handleBuiltinDefun));
 Scope.current.symtable.set('terpri', createBuiltinObject(handleBuiltinTerpri));
 Scope.current.symtable.set('if', createBuiltinObject(handleBuiltinIf));
+Scope.current.symtable.set('cons', createBuiltinObject(handleBuiltinCons));
 
 function main(): void {
   const code = readFileSync('./examples/factorial.lisp', 'utf8');
