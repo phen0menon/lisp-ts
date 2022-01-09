@@ -39,13 +39,14 @@ Scope.current.symtable.set('if', createBuiltinObject(handleBuiltinIf));
 Scope.current.symtable.set('cons', createBuiltinObject(handleBuiltinCons));
 
 function main(): void {
-  const code = readFileSync('./examples/factorial.lisp', 'utf8');
+  const code = readFileSync('./examples/cons.lisp', 'utf8');
   const cursor = new Cursor(code);
   const parser = new Parser(code, cursor);
   const lists = parser.collect();
   lists.forEach(list => {
     evalExpression(list);
   });
+  console.dir(Scope.current.symtable, {depth: null});
 }
 
 if (require.main === module) {
