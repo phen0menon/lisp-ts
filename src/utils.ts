@@ -1,4 +1,4 @@
-import {AnyNode, NodeType, NodeValueList} from './types';
+import {Node, AnyNode, NodeType, NodeValueList} from './types';
 
 export function isAlphaNumeric(str: string): boolean {
   for (let i = 0, len = str.length, code = 0; i < len; ++i) {
@@ -33,8 +33,25 @@ export function isTruthy(node: AnyNode): boolean {
       return (node.val as NodeValueList).length > 0;
     case NodeType.String:
       return (node.val as string).length > 0;
+    case NodeType.Nil:
+      return false;
     default: {
       return false;
     }
+  }
+}
+
+export function isNullish(node: AnyNode): boolean {
+  switch (node.type) {
+    case NodeType.Nil:
+      return true;
+    case NodeType.List: {
+      const list = (node as Node<NodeValueList>).val.length;
+      if (list === 0) {
+        return true;
+      }
+    }
+    default:
+      return false;
   }
 }

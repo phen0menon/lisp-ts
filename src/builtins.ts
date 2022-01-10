@@ -22,7 +22,7 @@ import {
   NodeValue,
   NodeValueList,
 } from './types';
-import {isTruthy} from './utils';
+import {isNullish, isTruthy} from './utils';
 
 function validateFunctionSignature(args: NodeValueList, operator: string, assertedValue = 2) {
   const argsCount = args.length;
@@ -86,16 +86,16 @@ export function handleBuiltinDivOperator(expr: Node<NodeValueList>): Node<NodeNu
   return createNumericObject(calculateDiv(leftArg, rightArg));
 }
 
-export function handleBuiltinSetq(expr: Node<NodeValueList>): null {
+export function handleBuiltinSetq(expr: Node<NodeValueList>): Node<NodeNil> {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'setq');
   const symname = args[0].val as string;
   const symval = evalExpression(args[1]);
   Scope.insertToSymtable(symname, symval);
-  return null;
+  return nil;
 }
 
-export function handleBuiltinPrint(expr: Node<NodeValueList>): null {
+export function handleBuiltinPrint(expr: Node<NodeValueList>): Node<NodeNil> {
   const [operator, ...args] = expr.val;
   args.forEach(arg => {
     const evaluatedArg = evalExpression(arg);
@@ -103,7 +103,7 @@ export function handleBuiltinPrint(expr: Node<NodeValueList>): null {
     process.stdout.write(strObj.val.toString());
   });
   console.log();
-  return null;
+  return nil;
 }
 
 export function handleBuiltinSubOperator(expr: Node<NodeValueList>): Node<NodeNumeric> {
@@ -149,7 +149,7 @@ export function handleBuiltinDefun(expr: Node<NodeValueList>): AnyNode {
   ) as Node<NodeValueList>;
 
   const bodyArgs = expr.val.slice(3);
-  const fbody = createObject(NodeType.List, bodyArgs);
+  const fbody = createObject(NodeType.Func, bodyArgs);
 
   const func = createFuncObject({
     args: fparams,
@@ -256,10 +256,35 @@ export function handleBuiltinIf(expr: Node<NodeValueList>): AnyNode {
   return evalExpression(elseExpr);
 }
 
+export function handleBuiltinNull(expr: Node<NodeValueList>): Node<NodeNil> | Node<NodeBool> {
+  const [operator, ...args] = expr.val;
+  validateFunctionSignature(args, 'null', 1);
+  const argument = evalExpression(args[0]);
+  if (isNullish(argument)) return createBoolObject(true);
+  return nil;
+}
+
 export function handleBuiltinCons(expr: Node<NodeValueList>): Node<NodeValueList> {
   const [operator, ...args] = expr.val;
-  const list = args.map(evalExpression);
-  const obj = createObject<NodeValueList>(NodeType.List, list);
+  validateFunctionSignature(args, 'cons', 2);
+
+  const [leftArg, rightArg] = args;
+  const car = [evalExpression(leftArg)];
+  const cdr = evalExpression(rightArg);
+
+  switch (cdr.type) {
+    case NodeType.List: {
+      const cdrList = cdr as Node<NodeValueList>;
+      car.push(...cdrList.val);
+      break;
+    }
+    case NodeType.Nil:
+      break;
+    default:
+      car.push(cdr);
+  }
+
+  const obj = createObject<NodeValueList>(NodeType.List, car);
   obj.flags |= NodeCallableFlags.Evaluated;
   return obj;
 }

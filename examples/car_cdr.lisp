@@ -8,4 +8,4 @@
 (setq numlist (cons 1 2 3 4))
 (setq q5 (nthcdr 10 numlist))
 (print q5)
-(print (nth 4 numlist))
+(print (nth 1 numlist))

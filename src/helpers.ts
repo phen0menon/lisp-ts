@@ -49,7 +49,7 @@ export function createListObject(val: NodeValueList): Node<NodeValueList> {
 }
 
 export function createBuiltinObject(handler: NodeBuiltinEval) {
-  const obj = createObject(NodeType.Symbol, handler);
+  const obj = createObject(NodeType.Func, handler);
   obj.flags = NodeCallableFlags.Builtin;
   return obj;
 }
@@ -58,6 +58,8 @@ export function toString(node: AnyNode) {
   switch (node.type) {
     case NodeType.Number:
     case NodeType.Symbol:
+      return node.val.toString();
+    case NodeType.Func:
       return node.val.toString();
     case NodeType.List: {
       let result = '(';

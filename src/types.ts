@@ -28,6 +28,7 @@ export enum NodeCallableFlags {
   UserDefined = 1 << 1,
   Lambda = 1 << 2,
   Evaluated = 1 << 3,
+  Literal = 1 << 4,
 }
 
 export interface Node<V extends NodeValue> {
@@ -70,4 +71,5 @@ export const enum Symbols {
   CR = '\r',
   LF = '\n',
   DQUOTE = '"',
+  SQUOTE = "'",
 }

@@ -1,4 +1,5 @@
 import {OperationError, UndefinedSymbolError} from './errors';
+import {nil} from './helpers';
 import {assertSymbolInSymtable, Scope} from './scope';
 import {
   Node,
@@ -39,20 +40,32 @@ function evalSymbol(expr: Node<NodeSymbol>): AnyNode {
   return symbol;
 }
 
+function evalListLiteral(expr: Node<NodeValueList>): AnyNode {
+  expr.val = expr.val.map(evalExpression);
+  expr.flags |= NodeCallableFlags.Evaluated;
+  return expr;
+}
+
 function evalList(expr: Node<NodeValueList>): AnyNode {
-  const list = expr.val;
-  if (!list.length) return expr;
-  const [operator] = list;
-  const callable = Scope.getFromSymtable(operator.val);
-  if (!callable) {
-    throw new UndefinedSymbolError(operator.val.toString());
+  if (expr.flags & NodeCallableFlags.Literal) {
+    return evalListLiteral(expr);
   }
-  const isBuiltin = callable.flags & NodeCallableFlags.Builtin;
-  if (isBuiltin) {
+
+  const list = expr.val;
+  if (!list.length) return nil;
+
+  const [operator, ...params] = list;
+  const callable = Scope.getFromSymtable(operator.val);
+  if (!callable) throw new UndefinedSymbolError(operator.val.toString());
+
+  if (callable.type !== NodeType.Func)
+    throw new Error(`${operator.val} is not callable but ${operator.type}`);
+
+  if (callable.flags & NodeCallableFlags.Builtin) {
     const evalBuiltin = callable.val as NodeBuiltinEval;
     return evalBuiltin(expr);
   }
-  const [_, ...params] = expr.val;
+
   return evalUserDefinedFunction(callable as Node<NodeFuncDef>, params as NodeValueList);
 }
 

@@ -19,10 +19,11 @@ import {
   handleBuiltinCdr,
   handleBuiltinNthCdr,
   handleBuiltinNth,
+  handleBuiltinNull,
 } from './builtins';
 import {Cursor} from './cursor';
 import {evalExpression} from './eval';
-import {createBuiltinObject} from './helpers';
+import {createBuiltinObject, nil} from './helpers';
 import {Parser} from './parser';
 import {Scope} from './scope';
 
@@ -45,9 +46,11 @@ Scope.current.symtable.set('car', createBuiltinObject(handleBuiltinCar));
 Scope.current.symtable.set('cdr', createBuiltinObject(handleBuiltinCdr));
 Scope.current.symtable.set('nthcdr', createBuiltinObject(handleBuiltinNthCdr));
 Scope.current.symtable.set('nth', createBuiltinObject(handleBuiltinNth));
+Scope.current.symtable.set('null', createBuiltinObject(handleBuiltinNull));
+Scope.current.symtable.set('nil', nil);
 
 function main(): void {
-  const code = readFileSync('./examples/car_cdr.lisp', 'utf8');
+  const code = readFileSync('./examples/list.lisp', 'utf8');
   const cursor = new Cursor(code);
   const parser = new Parser(code, cursor);
   const lists = parser.collect();

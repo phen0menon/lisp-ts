@@ -3,7 +3,15 @@ import util from 'util';
 import {Cursor} from './cursor';
 import {SyntaxError} from './errors';
 import {createNumericObject, createObject, createStringObject} from './helpers';
-import {NodeType, AnyNode, Symbols, InterpreterLocation} from './types';
+import {
+  Node,
+  NodeType,
+  AnyNode,
+  Symbols,
+  InterpreterLocation,
+  NodeValueList,
+  NodeCallableFlags,
+} from './types';
 import {isNumeric, isSymbol} from './utils';
 
 export class Parser {
@@ -48,7 +56,7 @@ export class Parser {
     return this.currentChar === char;
   }
 
-  parseList(): AnyNode {
+  parseList(): Node<NodeValueList> {
     this.skipChar();
     const list = [];
     while (!this.isChar(Symbols.RPAR)) {
@@ -68,6 +76,13 @@ export class Parser {
     this.skipChar();
     const object = createObject(NodeType.List, list);
     return object;
+  }
+
+  parseListLiteral(): Node<NodeValueList> {
+    this.skipChar();
+    const list = this.parseList();
+    list.flags |= NodeCallableFlags.Literal;
+    return list;
   }
 
   parseString(): AnyNode {
@@ -158,6 +173,9 @@ export class Parser {
       }
       case Symbols.DQUOTE: {
         return this.parseString();
+      }
+      case Symbols.SQUOTE: {
+        return this.parseListLiteral();
       }
       default: {
         if (isNumeric(this.currentChar)) {
