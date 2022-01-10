@@ -65,6 +65,9 @@ export function toString(node: AnyNode) {
       result += ')';
       return result;
     }
+    case NodeType.Nil: {
+      return 'nil';
+    }
     default: {
       return null;
     }
@@ -80,6 +83,9 @@ export function makeStringObject(node: AnyNode) {
       return createStringObject(node.val.toString());
     case NodeType.List: {
       return createStringObject(toString(node));
+    }
+    case NodeType.Nil: {
+      return nil;
     }
     default:
       return null;

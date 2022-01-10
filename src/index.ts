@@ -17,6 +17,7 @@ import {
   handleBuiltinCons,
   handleBuiltinCar,
   handleBuiltinCdr,
+  handleBuiltinNthCdr,
 } from './builtins';
 import {Cursor} from './cursor';
 import {evalExpression} from './eval';
@@ -41,6 +42,7 @@ Scope.current.symtable.set('if', createBuiltinObject(handleBuiltinIf));
 Scope.current.symtable.set('cons', createBuiltinObject(handleBuiltinCons));
 Scope.current.symtable.set('car', createBuiltinObject(handleBuiltinCar));
 Scope.current.symtable.set('cdr', createBuiltinObject(handleBuiltinCdr));
+Scope.current.symtable.set('nthcdr', createBuiltinObject(handleBuiltinNthCdr));
 
 function main(): void {
   const code = readFileSync('./examples/car_cdr.lisp', 'utf8');

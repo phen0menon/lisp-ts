@@ -8,12 +8,14 @@ import {
   createBoolObject,
   createObject,
   nil,
+  createListObject,
 } from './helpers';
 import {
   AnyNode,
   Node,
   NodeBool,
   NodeCallableFlags,
+  NodeNil,
   NodeNumeric,
   NodeSymbol,
   NodeType,
@@ -273,13 +275,26 @@ export function handleBuiltinCar(expr: Node<NodeValueList>): AnyNode {
   return element;
 }
 
-export function handleBuiltinCdr(expr: Node<NodeValueList>): AnyNode {
+export function handleBuiltinCdr(expr: Node<NodeValueList>): Node<NodeValueList> | Node<NodeNil> {
   const [operator, argument] = expr.val;
   const list = validateArgumentType(evalExpression(argument), [
     NodeType.List,
   ]) as Node<NodeValueList>;
   if (!list.val.length) return nil;
-  const element = list.val[list.val.length - 1];
+  const element = createListObject(list.val.slice(1));
+  return element;
+}
+
+export function handleBuiltinNthCdr(expr: Node<NodeValueList>): Node<NodeValueList | NodeNil> {
+  const [operator, ...args] = expr.val;
+  const index = validateArgumentType(evalExpression(args[0]), [
+    NodeType.Number,
+  ]) as Node<NodeNumeric>;
+  const list = validateArgumentType(evalExpression(args[1]), [
+    NodeType.List,
+  ]) as Node<NodeValueList>;
+  if (!list.val.length || list.val.length < index.val) return nil;
+  const element = createListObject(list.val.slice(index.val));
   return element;
 }
 
