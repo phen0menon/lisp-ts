@@ -1,4 +1,4 @@
-import {Node, AnyNode, NodeType, NodeValueList} from './types';
+import {Node, AnyNode, NodeType, NodeValueList, NodeCallableFlags} from './types';
 
 export function isAlphaNumeric(str: string): boolean {
   for (let i = 0, len = str.length, code = 0; i < len; ++i) {
@@ -54,4 +54,20 @@ export function isNullish(node: AnyNode): boolean {
     default:
       return false;
   }
+}
+
+export function isLiteral(node: AnyNode): boolean {
+  return !!(node.flags & NodeCallableFlags.Literal);
+}
+
+export function isBuiltin(node: AnyNode): boolean {
+  return !!(node.flags & NodeCallableFlags.Builtin);
+}
+
+export function isFunction(node: AnyNode): boolean {
+  return node.type === NodeType.Func;
+}
+
+export function isEvaluated(node: AnyNode): boolean {
+  return !!(node.flags & NodeCallableFlags.Evaluated);
 }

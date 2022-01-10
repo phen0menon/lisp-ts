@@ -12,6 +12,7 @@ import {
   NodeSymbol,
   Symtable,
 } from './types';
+import {isBuiltin, isEvaluated, isFunction, isLiteral} from './utils';
 
 function evalUserDefinedFunction(func: Node<NodeFuncDef>, params: NodeValueList): AnyNode {
   const args = func.val.args.val;
@@ -32,7 +33,7 @@ function evalUserDefinedFunction(func: Node<NodeFuncDef>, params: NodeValueList)
 function evalSymbol(expr: Node<NodeSymbol>): AnyNode {
   assertSymbolInSymtable(expr);
   let symbol = Scope.getFromSymtable(expr.val);
-  if (!(symbol.flags & NodeCallableFlags.Evaluated)) {
+  if (!isEvaluated(symbol)) {
     symbol = evalExpression(symbol);
     symbol.flags |= NodeCallableFlags.Evaluated;
     Scope.insertToSymtable(expr.val.toString(), symbol);
@@ -51,18 +52,17 @@ function evalList(expr: Node<NodeValueList>): AnyNode {
   if (!list.length) return nil;
 
   const [operator, ...params] = list;
-  const callable = Scope.getFromSymtable(operator.val);
-  if (!callable) throw new UndefinedSymbolError(operator.val.toString());
+  const func = Scope.getFromSymtable(operator.val);
+  if (!func) throw new UndefinedSymbolError(operator.val.toString());
 
-  if (callable.type !== NodeType.Func)
-    throw new Error(`${operator.val} is not callable but ${operator.type}`);
+  if (!isFunction(func)) throw new Error(`${operator.val} is not a function but ${operator.type}`);
 
-  if (callable.flags & NodeCallableFlags.Builtin) {
-    const evalBuiltin = callable.val as NodeBuiltinEval;
+  if (isBuiltin(func)) {
+    const evalBuiltin = func.val as NodeBuiltinEval;
     return evalBuiltin(expr);
   }
 
-  return evalUserDefinedFunction(callable as Node<NodeFuncDef>, params as NodeValueList);
+  return evalUserDefinedFunction(func as Node<NodeFuncDef>, params as NodeValueList);
 }
 
 function evalString(expr: Node<NodeSymbol>): Node<NodeSymbol> {
@@ -77,7 +77,7 @@ export function evalExpression(expr: AnyNode): AnyNode {
       return evalSymbol(expr as Node<NodeSymbol>);
     case NodeType.List: {
       const list = expr as Node<NodeValueList>;
-      if (expr.flags & NodeCallableFlags.Literal) {
+      if (isLiteral(list)) {
         return evalListLiteral(list);
       }
       return evalList(list);
