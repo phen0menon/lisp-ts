@@ -96,13 +96,12 @@ export function handleBuiltinSetq(expr: Node<NodeValueList>): null {
 }
 
 export function handleBuiltinPrint(expr: Node<NodeValueList>): null {
-  const list = expr.val;
-  let argumentIndex = 1;
-  while (argumentIndex < list.length) {
-    const argument = evalExpression(list[argumentIndex++]);
-    const strObj = makeStringObject(argument);
+  const [operator, ...args] = expr.val;
+  args.forEach(arg => {
+    const evaluatedArg = evalExpression(arg);
+    const strObj = makeStringObject(evaluatedArg);
     process.stdout.write(strObj.val.toString());
-  }
+  });
   console.log();
   return null;
 }
