@@ -5,5 +5,7 @@
 (setq q3 (car carres))
 (setq q4 (cdr q2))
 (print q1 q2 q3 q4)
-(setq q5 (nthcdr 10 (cons 1 2 3 4)))
+(setq numlist (cons 1 2 3 4))
+(setq q5 (nthcdr 10 numlist))
 (print q5)
+(print (nth 4 numlist))

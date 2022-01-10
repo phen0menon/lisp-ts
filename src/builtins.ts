@@ -293,8 +293,21 @@ export function handleBuiltinNthCdr(expr: Node<NodeValueList>): Node<NodeValueLi
   const list = validateArgumentType(evalExpression(args[1]), [
     NodeType.List,
   ]) as Node<NodeValueList>;
-  if (!list.val.length || list.val.length < index.val) return nil;
+  if (!list.val.length || index.val >= list.val.length) return nil;
   const element = createListObject(list.val.slice(index.val));
+  return element;
+}
+
+export function handleBuiltinNth(expr: Node<NodeValueList>): AnyNode {
+  const [operator, ...args] = expr.val;
+  const index = validateArgumentType(evalExpression(args[0]), [
+    NodeType.Number,
+  ]) as Node<NodeNumeric>;
+  const list = validateArgumentType(evalExpression(args[1]), [
+    NodeType.List,
+  ]) as Node<NodeValueList>;
+  if (!list.val.length || index.val >= list.val.length) return nil;
+  const element = list.val[index.val];
   return element;
 }
 
