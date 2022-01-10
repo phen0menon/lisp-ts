@@ -16,6 +16,8 @@ export function createObject<T extends NodeValue>(type: NodeType, val: T): Node<
   return {type, val, flags: NodeCallableFlags.Null};
 }
 
+export const nil = createObject(NodeType.Nil, 'nil');
+
 export function createStringObject(val: NodeSymbol): Node<NodeSymbol> {
   const obj = createObject(NodeType.String, val);
   obj.flags |= NodeCallableFlags.Evaluated;
@@ -41,7 +43,7 @@ export function createFuncObject(val: NodeFuncDef): Node<NodeFuncDef> {
 }
 
 export function createListObject(val: NodeValueList): Node<NodeValueList> {
-  const obj = createObject(NodeType.Func, val);
+  const obj = createObject(NodeType.List, val);
   obj.flags |= NodeCallableFlags.Evaluated;
   return obj;
 }

@@ -7,6 +7,7 @@ import {
   createNumericObject,
   createBoolObject,
   createObject,
+  nil,
 } from './helpers';
 import {
   AnyNode,
@@ -255,14 +256,31 @@ export function handleBuiltinIf(expr: Node<NodeValueList>): AnyNode {
 }
 
 export function handleBuiltinCons(expr: Node<NodeValueList>): Node<NodeValueList> {
-  const list = createObject<NodeValueList>(NodeType.List, []);
-  list.flags |= NodeCallableFlags.Evaluated;
+  const [operator, ...args] = expr.val;
+  const list = args.map(evalExpression);
+  const obj = createObject<NodeValueList>(NodeType.List, list);
+  obj.flags |= NodeCallableFlags.Evaluated;
+  return obj;
+}
 
-  const args = expr.val.slice(1);
-  const appendedList = args.map(evalExpression);
-  list.val.push(...appendedList);
+export function handleBuiltinCar(expr: Node<NodeValueList>): AnyNode {
+  const [operator, argument] = expr.val;
+  const list = validateArgumentType(evalExpression(argument), [
+    NodeType.List,
+  ]) as Node<NodeValueList>;
+  if (!list.val.length) return nil;
+  const element = list.val[0];
+  return element;
+}
 
-  return list;
+export function handleBuiltinCdr(expr: Node<NodeValueList>): AnyNode {
+  const [operator, argument] = expr.val;
+  const list = validateArgumentType(evalExpression(argument), [
+    NodeType.List,
+  ]) as Node<NodeValueList>;
+  if (!list.val.length) return nil;
+  const element = list.val[list.val.length - 1];
+  return element;
 }
 
 export function calculateMod(a: Node<NodeNumeric>, b: Node<NodeNumeric>): NodeNumeric {

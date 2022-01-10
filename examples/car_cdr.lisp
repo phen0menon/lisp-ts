@@ -1,0 +1,6 @@
+(setq q1 (cons 1 2))
+(setq q2 (cons 2 3))
+(setq carres (car (cons q1 q2)))
+(setq q3 (car carres))
+(setq q4 (cdr (cons q1 q2)))
+(print q1 q2 q3 q4)

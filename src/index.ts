@@ -15,6 +15,8 @@ import {
   handleBuiltinPowOperator,
   handleBuiltinIf,
   handleBuiltinCons,
+  handleBuiltinCar,
+  handleBuiltinCdr,
 } from './builtins';
 import {Cursor} from './cursor';
 import {evalExpression} from './eval';
@@ -37,16 +39,18 @@ Scope.current.symtable.set('defun', createBuiltinObject(handleBuiltinDefun));
 Scope.current.symtable.set('terpri', createBuiltinObject(handleBuiltinTerpri));
 Scope.current.symtable.set('if', createBuiltinObject(handleBuiltinIf));
 Scope.current.symtable.set('cons', createBuiltinObject(handleBuiltinCons));
+Scope.current.symtable.set('car', createBuiltinObject(handleBuiltinCar));
+Scope.current.symtable.set('cdr', createBuiltinObject(handleBuiltinCdr));
 
 function main(): void {
-  const code = readFileSync('./examples/cons.lisp', 'utf8');
+  const code = readFileSync('./examples/car_cdr.lisp', 'utf8');
   const cursor = new Cursor(code);
   const parser = new Parser(code, cursor);
   const lists = parser.collect();
   lists.forEach(list => {
     evalExpression(list);
   });
-  console.dir(Scope.current.symtable, {depth: null});
+  // console.dir(Scope.current.symtable, {depth: null});
 }
 
 if (require.main === module) {

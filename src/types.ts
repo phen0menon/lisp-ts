@@ -5,6 +5,7 @@ export const enum NodeType {
   Boolean = 'Boolean',
   List = 'List',
   Func = 'Func',
+  Nil = 'Nil',
 }
 
 export type NodeValue =
@@ -13,7 +14,8 @@ export type NodeValue =
   | NodeValueList
   | NodeNumeric
   | NodeSymbol
-  | NodeBool;
+  | NodeBool
+  | NodeNil;
 
 export type InterpreterLocation = {
   line: number;
@@ -33,6 +35,8 @@ export interface Node<V extends NodeValue> {
   type: NodeType;
   flags: NodeCallableFlags;
 }
+
+export type NodeNil = 'nil';
 
 export type NodeBool = boolean;
 
