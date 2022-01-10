@@ -47,10 +47,6 @@ function evalListLiteral(expr: Node<NodeValueList>): AnyNode {
 }
 
 function evalList(expr: Node<NodeValueList>): AnyNode {
-  if (expr.flags & NodeCallableFlags.Literal) {
-    return evalListLiteral(expr);
-  }
-
   const list = expr.val;
   if (!list.length) return nil;
 
@@ -79,8 +75,13 @@ export function evalExpression(expr: AnyNode): AnyNode {
       return evalString(expr as Node<NodeSymbol>);
     case NodeType.Symbol:
       return evalSymbol(expr as Node<NodeSymbol>);
-    case NodeType.List:
-      return evalList(expr as Node<NodeValueList>);
+    case NodeType.List: {
+      const list = expr as Node<NodeValueList>;
+      if (expr.flags & NodeCallableFlags.Literal) {
+        return evalListLiteral(list);
+      }
+      return evalList(list);
+    }
     default: {
       return expr;
     }
