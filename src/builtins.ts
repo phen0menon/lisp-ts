@@ -25,7 +25,7 @@ import {
 } from './types';
 import {isNullish, isTruthy} from './utils';
 
-function validateFunctionSignature(args: NodeValueList, operator: string, assertedValue = 2) {
+export function validateFunctionSignature(args: NodeValueList, operator: string, assertedValue = 2) {
   const argsCount = args.length;
   if (argsCount < assertedValue) {
     throw new OperationError(
