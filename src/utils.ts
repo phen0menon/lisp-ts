@@ -1,4 +1,4 @@
-import {Node, AnyNode, NodeType, NodeValueList, NodeCallableFlags} from './types';
+import { Node, AnyNode, NodeType, NodeValueList, NodeCallableFlags } from './types';
 
 export function isAlphaNumeric(str: string): boolean {
   for (let i = 0, len = str.length, code = 0; i < len; ++i) {

@@ -13,7 +13,7 @@ import {
 } from './types';
 
 export function createObject<T extends NodeValue>(type: NodeType, val: T): Node<T> {
-  return {type, val, flags: NodeCallableFlags.Null};
+  return { type, val, flags: NodeCallableFlags.Null };
 }
 
 export const nil = createObject(NodeType.Nil, 'nil');

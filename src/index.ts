@@ -1,4 +1,4 @@
-import {readFileSync} from 'fs';
+import { readFileSync } from 'fs';
 import {
   handleBuiltinAddOperator,
   handleBuiltinSubOperator,
@@ -24,11 +24,11 @@ import {
   handleBuiltinStringUpcase,
   handleBuiltinReverse,
 } from './builtins';
-import {Cursor} from './cursor';
-import {evalExpression} from './eval';
-import {createBuiltinObject, nil} from './helpers';
-import {Parser} from './parser';
-import {Scope} from './scope';
+import { Cursor } from './cursor';
+import { evalExpression } from './eval';
+import { createBuiltinObject, nil } from './helpers';
+import { Parser } from './parser';
+import { Scope } from './scope';
 
 Scope.current.symtable.set('+', createBuiltinObject(handleBuiltinAddOperator));
 Scope.current.symtable.set('-', createBuiltinObject(handleBuiltinSubOperator));

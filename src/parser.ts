@@ -1,8 +1,8 @@
 import util from 'util';
 
-import {Cursor} from './cursor';
-import {SyntaxError} from './errors';
-import {createNumericObject, createObject, createStringObject} from './helpers';
+import { Cursor } from './cursor';
+import { SyntaxError } from './errors';
+import { createNumericObject, createObject, createStringObject } from './helpers';
 import {
   Node,
   NodeType,
@@ -12,7 +12,7 @@ import {
   NodeValueList,
   NodeCallableFlags,
 } from './types';
-import {isNumeric, isSymbol} from './utils';
+import { isNumeric, isSymbol } from './utils';
 
 export class Parser {
   private position: number = 0;
@@ -30,7 +30,7 @@ export class Parser {
   }
 
   get cursorPos(): InterpreterLocation {
-    return {line: this.line, column: this.column};
+    return { line: this.line, column: this.column };
   }
 
   consumeChar(): string {

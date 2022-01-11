@@ -1,6 +1,6 @@
-import {Scope} from './scope';
-import {OperationError} from './errors';
-import {evalExpression} from './eval';
+import { Scope } from './scope';
+import { OperationError } from './errors';
+import { evalExpression } from './eval';
 import {
   createFuncObject,
   makeStringObject,
@@ -23,9 +23,13 @@ import {
   NodeValue,
   NodeValueList,
 } from './types';
-import {isNullish, isTruthy} from './utils';
+import { isNullish, isTruthy } from './utils';
 
-export function validateFunctionSignature(args: NodeValueList, operator: string, assertedValue = 2) {
+export function validateFunctionSignature(
+  args: NodeValueList,
+  operator: string,
+  assertedValue = 2
+) {
   const argsCount = args.length;
   if (argsCount < assertedValue) {
     throw new OperationError(

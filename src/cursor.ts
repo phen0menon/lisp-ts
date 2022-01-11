@@ -1,4 +1,4 @@
-import {InterpreterLocation, Symbols} from './types';
+import { InterpreterLocation, Symbols } from './types';
 
 export class Cursor {
   private readonly file: string;
@@ -36,8 +36,8 @@ export class Cursor {
   }
 
   getFileChunk(position: InterpreterLocation, offsetStart = 10, offsetEnd = 20) {
-    const {line, column} = position;
-    const {lineBreaks, length} = this;
+    const { line, column } = position;
+    const { lineBreaks, length } = this;
 
     const index = lineBreaks[line] + column;
     if (index > length) return null;

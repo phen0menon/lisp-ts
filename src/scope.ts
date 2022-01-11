@@ -1,5 +1,5 @@
-import {UndefinedSymbolError} from './errors';
-import {AnyNode, Scope as TScope, Symtable} from './types';
+import { UndefinedSymbolError } from './errors';
+import { AnyNode, Scope as TScope, Symtable } from './types';
 
 export class Scope {
   static current: TScope = this.create();
@@ -19,7 +19,7 @@ export class Scope {
   }
 
   static exit() {
-    const {prev} = this.current;
+    const { prev } = this.current;
     delete this.current;
     this.current = prev;
   }
@@ -39,7 +39,7 @@ export class Scope {
 }
 
 export function assertSymbolInSymtable(symbol: AnyNode) {
-  const {symtable} = Scope.current;
+  const { symtable } = Scope.current;
   const strSymbol = symbol.val.toString();
   if (!symtable.has(strSymbol)) {
     throw new UndefinedSymbolError(strSymbol);
@@ -47,7 +47,7 @@ export function assertSymbolInSymtable(symbol: AnyNode) {
 }
 
 export function assertKeyNotInSymtable(key: string) {
-  const {symtable} = Scope.current;
+  const { symtable } = Scope.current;
   if (symtable.has(key)) {
     throw new Error(`Duplicate symbol found: ${key}`);
   }

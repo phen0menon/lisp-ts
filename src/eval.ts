@@ -1,6 +1,6 @@
-import {OperationError, UndefinedSymbolError} from './errors';
-import {nil} from './helpers';
-import {assertSymbolInSymtable, Scope} from './scope';
+import { OperationError, UndefinedSymbolError } from './errors';
+import { nil } from './helpers';
+import { assertSymbolInSymtable, Scope } from './scope';
 import {
   Node,
   NodeType,
@@ -12,7 +12,7 @@ import {
   NodeSymbol,
   Symtable,
 } from './types';
-import {isBuiltin, isEvaluated, isFunction, isLiteral} from './utils';
+import { isBuiltin, isEvaluated, isFunction, isLiteral } from './utils';
 
 function evalUserDefinedFunction(func: Node<NodeFuncDef>, params: NodeValueList): AnyNode {
   const args = func.val.args.val;
