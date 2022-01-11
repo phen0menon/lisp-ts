@@ -1,3 +1,5 @@
+import { Scope as CScope } from './scope';
+
 export const enum NodeType {
   Symbol = 'Symbol',
   String = 'String',
@@ -31,6 +33,16 @@ export enum NodeCallableFlags {
   Literal = 1 << 4,
 }
 
+export type Context = {
+  text: string;
+  textPosition: number;
+  textLength: number;
+  textLine: number;
+  textColumn: number;
+  scope: CScope;
+  parsedNodes: AnyNode[];
+};
+
 export interface Node<V extends NodeValue> {
   val: V;
   type: NodeType;
@@ -47,7 +59,7 @@ export type NodeNumeric = number;
 
 export type NodeValueList = Array<AnyNode>;
 
-export type NodeBuiltinEval = (node: AnyNode) => AnyNode;
+export type NodeBuiltinEval = (ctx: Context, node: AnyNode) => AnyNode;
 
 export type NodeFuncDef = {
   args: Node<NodeValueList>;

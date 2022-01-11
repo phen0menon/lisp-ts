@@ -1,6 +1,4 @@
 import util from 'util';
-
-import { Cursor } from './cursor';
 import { SyntaxError } from './errors';
 import { createNumericObject, createObject, createStringObject } from './helpers';
 import {
@@ -11,199 +9,194 @@ import {
   InterpreterLocation,
   NodeValueList,
   NodeCallableFlags,
+  Context,
 } from './types';
 import { isNumeric, isSymbol } from './utils';
 
-export class Parser {
-  private position: number = 0;
-  private line: number = 0;
-  private column: number = 0;
+export function getCursorPos(ctx: Context): InterpreterLocation {
+  return { line: ctx.textLine, column: ctx.textColumn };
+}
 
-  constructor(private readonly code: string, private readonly cursor: Cursor) {}
+export function getCurrentChar(ctx: Context): string {
+  return ctx.text[ctx.textPosition];
+}
 
-  get length(): number {
-    return this.code.length;
-  }
+export function consumeChar(ctx: Context): string {
+  ctx.textColumn++;
+  return ctx.text[ctx.textPosition++];
+}
 
-  get currentChar(): string {
-    return this.code[this.position];
-  }
+export function skipChar(ctx: Context): void {
+  ctx.textColumn++;
+  ctx.textPosition++;
+}
 
-  get cursorPos(): InterpreterLocation {
-    return { line: this.line, column: this.column };
-  }
+export function hasNextChar(ctx: Context): boolean {
+  return ctx.textPosition < ctx.textLength;
+}
 
-  consumeChar(): string {
-    this.column++;
-    return this.code[this.position++];
-  }
+export function gotoNextChar(ctx: Context): void {
+  ctx.textColumn++;
+  ctx.textPosition++;
+}
 
-  skipChar(): void {
-    this.column++;
-    this.position++;
-  }
+export function isChar(ctx: Context, char: string): boolean {
+  return getCurrentChar(ctx) === char;
+}
 
-  hasNextChar(): boolean {
-    return this.position < this.length;
-  }
-
-  gotoNextChar(): void {
-    this.column++;
-    this.position++;
-  }
-
-  isChar(char: string): boolean {
-    return this.currentChar === char;
-  }
-
-  parseList(): Node<NodeValueList> {
-    this.skipChar();
-    const list = [];
-    while (!this.isChar(Symbols.RPAR)) {
-      if (!this.hasNextChar()) {
-        throw new SyntaxError(
-          util.format(
-            'Mismatched input: expected %s at the end of a list at %i:%i\n%s',
-            Symbols.RPAR,
-            this.cursorPos.line,
-            this.cursorPos.column,
-            this.cursor.getFileChunk(this.cursorPos)
-          )
-        );
-      }
-      list.push(this.parse());
+export function parseList(ctx: Context): Node<NodeValueList> {
+  skipChar(ctx);
+  const list = [];
+  while (!isChar(ctx, Symbols.RPAR)) {
+    if (!hasNextChar(ctx)) {
+      const cursorPos = getCursorPos(ctx);
+      throw new SyntaxError(
+        util.format(
+          'Mismatched input: expected %s at the end of a list at %i:%i\n%s',
+          Symbols.RPAR,
+          cursorPos.line,
+          cursorPos.column,
+          // TODO
+          // ctx.cursor.getFileChunk(cursorPos)
+          ''
+        )
+      );
     }
-    this.skipChar();
-    const object = createObject(NodeType.List, list);
-    return object;
+    list.push(parse(ctx));
   }
+  skipChar(ctx);
+  const object = createObject(NodeType.List, list);
+  return object;
+}
 
-  parseListLiteral(): Node<NodeValueList> {
-    this.skipChar();
-    const list = this.parseList();
-    list.flags |= NodeCallableFlags.Literal;
-    return list;
-  }
+export function parseListLiteral(ctx: Context): Node<NodeValueList> {
+  skipChar(ctx);
+  const list = parseList(ctx);
+  list.flags |= NodeCallableFlags.Literal;
+  return list;
+}
 
-  parseString(): AnyNode {
-    this.skipChar();
-    let string = '';
-    while (true) {
-      // if this is an escape character
-      if (this.isChar('\\')) {
-        this.gotoNextChar();
+export function parseString(ctx: Context): AnyNode {
+  skipChar(ctx);
+  let string = '';
+  while (true) {
+    // if this is an escape character
+    if (isChar(ctx, '\\')) {
+      gotoNextChar(ctx);
 
-        if (!this.hasNextChar()) {
-          throw new SyntaxError(`Unexpected end of file, escape character expected`);
+      if (!hasNextChar(ctx)) {
+        throw new SyntaxError(`Unexpected end of file, escape character expected`);
+      }
+
+      switch (getCurrentChar(ctx)) {
+        case 'r': {
+          string += '\r';
+          break;
         }
-
-        switch (this.currentChar) {
-          case 'r': {
-            string += '\r';
-            break;
-          }
-          case 'n': {
-            string += '\n';
-            break;
-          }
-          case 't': {
-            string += '\t';
-            break;
-          }
-          case '0': {
-            string += '\0';
-            break;
-          }
-          default: {
-            string += '\\' + this.currentChar;
-          }
+        case 'n': {
+          string += '\n';
+          break;
         }
-        this.gotoNextChar();
-        continue;
-      }
-
-      // if this is an end of the string
-      if (this.isChar('"')) {
-        this.skipChar();
-        break;
-      }
-
-      string += this.consumeChar();
-    }
-
-    return createStringObject(string);
-  }
-
-  parseNumber(): AnyNode {
-    let value = '';
-    while (this.hasNextChar() && isNumeric(this.currentChar)) {
-      value += this.consumeChar();
-    }
-    const numericValue = parseInt(value, 10);
-    const object = createNumericObject(numericValue);
-    return object;
-  }
-
-  parseSymbol(): AnyNode {
-    let symbol = '';
-    while (this.hasNextChar() && isSymbol(this.currentChar)) {
-      symbol += this.consumeChar();
-    }
-    const object = createObject(NodeType.Symbol, symbol);
-    return object;
-  }
-
-  parse(): AnyNode {
-    switch (this.currentChar) {
-      case Symbols.LPAR: {
-        return this.parseList();
-      }
-      case Symbols.CR: {
-        this.skipChar();
-        return this.parse();
-      }
-      case Symbols.LF: {
-        this.column = 0;
-        this.line++;
-      }
-      case Symbols.SPACE:
-      case Symbols.NSPACE: {
-        this.skipChar();
-        return this.parse();
-      }
-      case Symbols.DQUOTE: {
-        return this.parseString();
-      }
-      case Symbols.SQUOTE: {
-        return this.parseListLiteral();
-      }
-      default: {
-        if (isNumeric(this.currentChar)) {
-          return this.parseNumber();
+        case 't': {
+          string += '\t';
+          break;
         }
-
-        if (isSymbol(this.currentChar)) {
-          return this.parseSymbol();
+        case '0': {
+          string += '\0';
+          break;
         }
-
-        throw new SyntaxError(
-          util.format(
-            'Unexpected symbol: %s at %i:%i\n%s',
-            this.currentChar,
-            this.line,
-            this.column,
-            this.cursor.getFileChunk(this.cursorPos)
-          )
-        );
+        default: {
+          string += '\\' + getCurrentChar(ctx);
+        }
       }
+      gotoNextChar(ctx);
+      continue;
     }
+
+    // if this is an end of the string
+    if (isChar(ctx, '"')) {
+      skipChar(ctx);
+      break;
+    }
+
+    string += consumeChar(ctx);
   }
 
-  collect(): Array<AnyNode> {
-    const lists = [];
-    while (this.hasNextChar()) {
-      lists.push(this.parse());
-    }
-    return lists;
+  return createStringObject(string);
+}
+
+export function parseNumber(ctx: Context): AnyNode {
+  let value = '';
+  while (hasNextChar(ctx) && isNumeric(getCurrentChar(ctx))) {
+    value += consumeChar(ctx);
   }
+  const numericValue = parseInt(value, 10);
+  const object = createNumericObject(numericValue);
+  return object;
+}
+
+export function parseSymbol(ctx: Context): AnyNode {
+  let symbol = '';
+  while (hasNextChar(ctx) && isSymbol(getCurrentChar(ctx))) {
+    symbol += consumeChar(ctx);
+  }
+  const object = createObject(NodeType.Symbol, symbol);
+  return object;
+}
+
+export function parse(ctx: Context): AnyNode {
+  const char = getCurrentChar(ctx);
+  switch (char) {
+    case Symbols.LPAR: {
+      return parseList(ctx);
+    }
+    case Symbols.CR: {
+      skipChar(ctx);
+      return parse(ctx);
+    }
+    case Symbols.LF: {
+      ctx.textColumn = 0;
+      ctx.textLine++;
+    }
+    case Symbols.SPACE:
+    case Symbols.NSPACE: {
+      skipChar(ctx);
+      return parse(ctx);
+    }
+    case Symbols.DQUOTE: {
+      return parseString(ctx);
+    }
+    case Symbols.SQUOTE: {
+      return parseListLiteral(ctx);
+    }
+    default: {
+      if (isNumeric(char)) {
+        return parseNumber(ctx);
+      }
+
+      if (isSymbol(char)) {
+        return parseSymbol(ctx);
+      }
+
+      throw new SyntaxError(
+        util.format(
+          'Unexpected symbol: %s at %i:%i\n%s',
+          char,
+          ctx.textLine,
+          ctx.textColumn,
+          // TODO:
+          // cursor.getFileChunk(cursorPos)
+          ''
+        )
+      );
+    }
+  }
+}
+
+export function collectLists(ctx: Context): Array<AnyNode> {
+  const lists = [];
+  while (hasNextChar(ctx)) {
+    lists.push(parse(ctx));
+  }
+  return lists;
 }

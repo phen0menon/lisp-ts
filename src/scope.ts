@@ -2,9 +2,13 @@ import { UndefinedSymbolError } from './errors';
 import { AnyNode, Scope as TScope, Symtable } from './types';
 
 export class Scope {
-  static current: TScope = this.create();
+  private current: TScope = this.create();
 
-  static create(map?: Symtable): TScope {
+  get() {
+    return this.current;
+  }
+
+  create(map?: Symtable): TScope {
     const scope = {
       symtable: map ?? new Map<string, AnyNode>(),
       prev: null as TScope,
@@ -12,23 +16,23 @@ export class Scope {
     return scope;
   }
 
-  static enter(map?: Symtable) {
+  enter(map?: Symtable) {
     const scope = this.create(map);
     scope.prev = this.current;
     this.current = scope;
   }
 
-  static exit() {
+  exit() {
     const { prev } = this.current;
     delete this.current;
     this.current = prev;
   }
 
-  static insertToSymtable(key: string, val: AnyNode): void {
+  insertToSymtable(key: string, val: AnyNode): void {
     this.current.symtable.set(key, val);
   }
 
-  static getFromSymtable<T extends Object>(key: T) {
+  getFromSymtable<T extends Object>(key: T) {
     let iter = this.current;
     while (true) {
       if (iter.symtable.has(key.toString())) return iter.symtable.get(key.toString());
@@ -38,16 +42,14 @@ export class Scope {
   }
 }
 
-export function assertSymbolInSymtable(symbol: AnyNode) {
-  const { symtable } = Scope.current;
+export function assertSymbolInSymtable(symtable: Symtable, symbol: AnyNode): void {
   const strSymbol = symbol.val.toString();
   if (!symtable.has(strSymbol)) {
     throw new UndefinedSymbolError(strSymbol);
   }
 }
 
-export function assertKeyNotInSymtable(key: string) {
-  const { symtable } = Scope.current;
+export function assertKeyNotInSymtable(symtable: Symtable, key: string) {
   if (symtable.has(key)) {
     throw new Error(`Duplicate symbol found: ${key}`);
   }
