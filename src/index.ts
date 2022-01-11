@@ -20,6 +20,9 @@ import {
   handleBuiltinNthCdr,
   handleBuiltinNth,
   handleBuiltinNull,
+  handleBuiltinSubseq,
+  handleBuiltinStringUpcase,
+  handleBuiltinReverse,
 } from './builtins';
 import {Cursor} from './cursor';
 import {evalExpression} from './eval';
@@ -46,11 +49,14 @@ Scope.current.symtable.set('car', createBuiltinObject(handleBuiltinCar));
 Scope.current.symtable.set('cdr', createBuiltinObject(handleBuiltinCdr));
 Scope.current.symtable.set('nthcdr', createBuiltinObject(handleBuiltinNthCdr));
 Scope.current.symtable.set('nth', createBuiltinObject(handleBuiltinNth));
+Scope.current.symtable.set('subseq', createBuiltinObject(handleBuiltinSubseq));
 Scope.current.symtable.set('null', createBuiltinObject(handleBuiltinNull));
+Scope.current.symtable.set('string-upcase', createBuiltinObject(handleBuiltinStringUpcase));
+Scope.current.symtable.set('reverse', createBuiltinObject(handleBuiltinReverse));
 Scope.current.symtable.set('nil', nil);
 
 function main(): void {
-  const code = readFileSync('./examples/list.lisp', 'utf8');
+  const code = readFileSync('./examples/reverse.lisp', 'utf8');
   const cursor = new Cursor(code);
   const parser = new Parser(code, cursor);
   const lists = parser.collect();

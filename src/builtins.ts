@@ -9,6 +9,7 @@ import {
   createObject,
   nil,
   createListObject,
+  createStringObject,
 } from './helpers';
 import {
   AnyNode,
@@ -332,6 +333,49 @@ export function handleBuiltinNth(expr: Node<NodeValueList>): AnyNode {
   ]) as Node<NodeValueList>;
   if (!list.val.length || index.val >= list.val.length) return nil;
   const element = list.val[index.val];
+  return element;
+}
+
+export function handleBuiltinSubseq(expr: Node<NodeValueList>): AnyNode {
+  const [operator, ...args] = expr.val;
+  validateFunctionSignature(args, 'subseq', 2);
+
+  const seq = validateArgumentType(evalExpression(args[0]), [NodeType.String]) as Node<NodeSymbol>;
+  const seqLength = seq.val.length;
+
+  const start = (
+    validateArgumentType(evalExpression(args[1]), [NodeType.Number]) as Node<NodeNumeric>
+  ).val;
+
+  const end = args[2]
+    ? (validateArgumentType(evalExpression(args[2]), [NodeType.Number]) as Node<NodeNumeric>).val
+    : seqLength;
+
+  if (start >= seqLength) return nil;
+  if (end > seqLength) return nil;
+
+  const element = createStringObject(seq.val.substring(start, end));
+  return element;
+}
+
+export function handleBuiltinStringUpcase(expr: Node<NodeValueList>): Node<NodeSymbol> {
+  const [operator, ...args] = expr.val;
+  validateFunctionSignature(args, 'string-upcase', 1);
+  const string = validateArgumentType(evalExpression(args[0]), [
+    NodeType.String,
+  ]) as Node<NodeSymbol>;
+  const element = createStringObject(string.val.toUpperCase());
+  return element;
+}
+
+export function handleBuiltinReverse(expr: Node<NodeValueList>): Node<NodeSymbol> {
+  const [operator, ...args] = expr.val;
+  validateFunctionSignature(args, 'string-upcase', 1);
+  const string = validateArgumentType(evalExpression(args[0]), [
+    NodeType.String,
+  ]) as Node<NodeSymbol>;
+  const reversed = [...string.val].reverse().join('');
+  const element = createStringObject(reversed);
   return element;
 }
 
