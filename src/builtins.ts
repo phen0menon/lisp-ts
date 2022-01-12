@@ -10,6 +10,9 @@ import {
   nil,
   createListObject,
   createStringObject,
+  validateArgumentType,
+  evalArgument,
+  validateFunctionSignature,
 } from './helpers';
 import {
   AnyNode,
@@ -26,44 +29,7 @@ import {
 } from './types';
 import { isNullish, isTruthy } from './utils';
 
-export function validateFunctionSignature(
-  args: NodeValueList,
-  operator: string,
-  assertedValue = 2
-) {
-  const argsCount = args.length;
-  if (argsCount < assertedValue) {
-    throw new OperationError(
-      `${operator} takes ${assertedValue} or more arguments, but ${argsCount} presented`
-    );
-  }
-}
-
-export function validateArgumentType(
-  arg: AnyNode,
-  validTypes: NodeType[],
-  errMsg?: string
-): AnyNode {
-  if (!validTypes.includes(arg.type)) {
-    throw new OperationError(
-      errMsg ?? `Expected argument of types ${validTypes.join(', ')}, but ${arg.type} was given`
-    );
-  }
-  return arg;
-}
-
-export function evalArgument(ctx: Context, node: AnyNode): Node<Exclude<NodeValue, NodeValueList>> {
-  let currNode = evalExpression(ctx, node);
-  while (currNode.type === NodeType.List) {
-    currNode = evalExpression(ctx, currNode);
-  }
-  return currNode as Node<Exclude<NodeValue, NodeValueList>>;
-}
-
-export function handleBuiltinAddOperator(
-  ctx: Context,
-  expr: Node<NodeValueList>
-): Node<NodeNumeric> {
+export function evalAdd(ctx: Context, expr: Node<NodeValueList>): Node<NodeNumeric> {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'add');
   const leftArg = validateArgumentType(evalArgument(ctx, args[0]), [
@@ -75,7 +41,7 @@ export function handleBuiltinAddOperator(
   return createNumericObject(calculateAdd(leftArg, rightArg));
 }
 
-export function handleBuiltinMultOperator(ctx: Context, expr: Node<NodeValueList>): AnyNode {
+export function evalMult(ctx: Context, expr: Node<NodeValueList>): AnyNode {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'mult');
   const leftArg = validateArgumentType(evalArgument(ctx, args[0]), [
@@ -87,10 +53,7 @@ export function handleBuiltinMultOperator(ctx: Context, expr: Node<NodeValueList
   return createNumericObject(calculateMult(leftArg, rightArg));
 }
 
-export function handleBuiltinDivOperator(
-  ctx: Context,
-  expr: Node<NodeValueList>
-): Node<NodeNumeric> {
+export function evalDiv(ctx: Context, expr: Node<NodeValueList>): Node<NodeNumeric> {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'div');
   const leftArg = validateArgumentType(evalArgument(ctx, args[0]), [
@@ -102,16 +65,16 @@ export function handleBuiltinDivOperator(
   return createNumericObject(calculateDiv(leftArg, rightArg));
 }
 
-export function handleBuiltinSetq(ctx: Context, expr: Node<NodeValueList>): Node<NodeNil> {
-  const [_, ...args] = expr.val;
+export function evalSetq(ctx: Context, expr: Node<NodeValueList>): Node<NodeNil> {
+  const [operator, ...args] = expr.val;
   validateFunctionSignature(args, 'setq');
-  const symname = args[0].val as string;
+  const symname = validateArgumentType(args[0], [NodeType.Symbol]) as Node<NodeSymbol>;
   const symval = evalExpression(ctx, args[1]);
-  ctx.scope.insertToSymtable(symname, symval);
+  ctx.scope.insertToSymtable(symname.val, symval);
   return nil;
 }
 
-export function handleBuiltinPrint(ctx: Context, expr: Node<NodeValueList>): Node<NodeNil> {
+export function evalPrint(ctx: Context, expr: Node<NodeValueList>): Node<NodeNil> {
   const [operator, ...args] = expr.val;
   args.forEach(arg => {
     const evaluatedArg = evalExpression(ctx, arg);
@@ -122,11 +85,8 @@ export function handleBuiltinPrint(ctx: Context, expr: Node<NodeValueList>): Nod
   return nil;
 }
 
-export function handleBuiltinSubOperator(
-  ctx: Context,
-  expr: Node<NodeValueList>
-): Node<NodeNumeric> {
-  const [_, ...args] = expr.val;
+export function evalSub(ctx: Context, expr: Node<NodeValueList>): Node<NodeNumeric> {
+  const [operator, ...args] = expr.val;
   validateFunctionSignature(args, 'sub');
   const leftArg = validateArgumentType(evalArgument(ctx, args[0]), [
     NodeType.Number,
@@ -137,10 +97,7 @@ export function handleBuiltinSubOperator(
   return createNumericObject(calculateSub(leftArg, rightArg));
 }
 
-export function handleBuiltinModOperator(
-  ctx: Context,
-  expr: Node<NodeValueList>
-): Node<NodeNumeric> {
+export function evalMod(ctx: Context, expr: Node<NodeValueList>): Node<NodeNumeric> {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'mod');
   const leftArg = validateArgumentType(evalArgument(ctx, args[0]), [
@@ -152,7 +109,7 @@ export function handleBuiltinModOperator(
   return createNumericObject(calculateMod(leftArg, rightArg));
 }
 
-export function handleBuiltinDefun(ctx: Context, expr: Node<NodeValueList>): AnyNode {
+export function evalDefun(ctx: Context, expr: Node<NodeValueList>): AnyNode {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'defun');
 
@@ -182,12 +139,12 @@ export function handleBuiltinDefun(ctx: Context, expr: Node<NodeValueList>): Any
   return func;
 }
 
-export function handleBuiltinTerpri(ctx: Context, expr: Node<NodeValueList>): Node<NodeValueList> {
+export function evalTerpri(ctx: Context, expr: Node<NodeValueList>): Node<NodeValueList> {
   console.log();
   return expr;
 }
 
-export function handleBuiltinLtOperator(ctx: Context, expr: Node<NodeValueList>): Node<NodeBool> {
+export function evalLtOperator(ctx: Context, expr: Node<NodeValueList>): Node<NodeBool> {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, '<');
 
@@ -210,7 +167,7 @@ export function handleBuiltinLtOperator(ctx: Context, expr: Node<NodeValueList>)
   }
 }
 
-export function handleBuiltinEqOperator(ctx: Context, expr: Node<NodeValueList>): Node<NodeBool> {
+export function evalEqOperator(ctx: Context, expr: Node<NodeValueList>): Node<NodeBool> {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, '=');
 
@@ -233,7 +190,7 @@ export function handleBuiltinEqOperator(ctx: Context, expr: Node<NodeValueList>)
   }
 }
 
-export function handleBuiltinGtOperator(ctx: Context, expr: Node<NodeValueList>): Node<NodeBool> {
+export function evalGtOperator(ctx: Context, expr: Node<NodeValueList>): Node<NodeBool> {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, '>');
 
@@ -256,10 +213,7 @@ export function handleBuiltinGtOperator(ctx: Context, expr: Node<NodeValueList>)
   }
 }
 
-export function handleBuiltinPowOperator(
-  ctx: Context,
-  expr: Node<NodeValueList>
-): Node<NodeNumeric> {
+export function evalPowOperator(ctx: Context, expr: Node<NodeValueList>): Node<NodeNumeric> {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'pow');
   const leftArg = validateArgumentType(evalArgument(ctx, args[0]), [
@@ -271,7 +225,7 @@ export function handleBuiltinPowOperator(
   return createNumericObject(calculatePow(leftArg, rightArg));
 }
 
-export function handleBuiltinIf(ctx: Context, expr: Node<NodeValueList>): AnyNode {
+export function evalIf(ctx: Context, expr: Node<NodeValueList>): AnyNode {
   const [_, ...args] = expr.val;
   validateFunctionSignature(args, 'if', 3);
   const [condExpr, thenExpr, elseExpr] = args;
@@ -281,10 +235,7 @@ export function handleBuiltinIf(ctx: Context, expr: Node<NodeValueList>): AnyNod
   return evalExpression(ctx, elseExpr);
 }
 
-export function handleBuiltinNull(
-  ctx: Context,
-  expr: Node<NodeValueList>
-): Node<NodeNil> | Node<NodeBool> {
+export function evalNull(ctx: Context, expr: Node<NodeValueList>): Node<NodeNil> | Node<NodeBool> {
   const [operator, ...args] = expr.val;
   validateFunctionSignature(args, 'null', 1);
   const argument = evalExpression(ctx, args[0]);
@@ -292,7 +243,7 @@ export function handleBuiltinNull(
   return nil;
 }
 
-export function handleBuiltinCons(ctx: Context, expr: Node<NodeValueList>): Node<NodeValueList> {
+export function evalCons(ctx: Context, expr: Node<NodeValueList>): Node<NodeValueList> {
   const [operator, ...args] = expr.val;
   validateFunctionSignature(args, 'cons', 2);
 
@@ -317,7 +268,7 @@ export function handleBuiltinCons(ctx: Context, expr: Node<NodeValueList>): Node
   return obj;
 }
 
-export function handleBuiltinCar(ctx: Context, expr: Node<NodeValueList>): AnyNode {
+export function evalCar(ctx: Context, expr: Node<NodeValueList>): AnyNode {
   const [operator, argument] = expr.val;
   const list = validateArgumentType(evalExpression(ctx, argument), [
     NodeType.List,
@@ -327,7 +278,7 @@ export function handleBuiltinCar(ctx: Context, expr: Node<NodeValueList>): AnyNo
   return element;
 }
 
-export function handleBuiltinCdr(
+export function evalCdr(
   ctx: Context,
   expr: Node<NodeValueList>
 ): Node<NodeValueList> | Node<NodeNil> {
@@ -340,10 +291,7 @@ export function handleBuiltinCdr(
   return element;
 }
 
-export function handleBuiltinNthCdr(
-  ctx: Context,
-  expr: Node<NodeValueList>
-): Node<NodeValueList | NodeNil> {
+export function evalNthCdr(ctx: Context, expr: Node<NodeValueList>): Node<NodeValueList | NodeNil> {
   const [operator, ...args] = expr.val;
   const index = validateArgumentType(evalExpression(ctx, args[0]), [
     NodeType.Number,
@@ -356,7 +304,7 @@ export function handleBuiltinNthCdr(
   return element;
 }
 
-export function handleBuiltinNth(ctx: Context, expr: Node<NodeValueList>): AnyNode {
+export function evalNth(ctx: Context, expr: Node<NodeValueList>): AnyNode {
   const [operator, ...args] = expr.val;
   const index = validateArgumentType(evalExpression(ctx, args[0]), [
     NodeType.Number,
@@ -369,7 +317,7 @@ export function handleBuiltinNth(ctx: Context, expr: Node<NodeValueList>): AnyNo
   return element;
 }
 
-export function handleBuiltinSubseq(ctx: Context, expr: Node<NodeValueList>): AnyNode {
+export function evalSubseq(ctx: Context, expr: Node<NodeValueList>): AnyNode {
   const [operator, ...args] = expr.val;
   validateFunctionSignature(args, 'subseq', 2);
 
@@ -394,10 +342,7 @@ export function handleBuiltinSubseq(ctx: Context, expr: Node<NodeValueList>): An
   return element;
 }
 
-export function handleBuiltinStringUpcase(
-  ctx: Context,
-  expr: Node<NodeValueList>
-): Node<NodeSymbol> {
+export function evalStringUpcase(ctx: Context, expr: Node<NodeValueList>): Node<NodeSymbol> {
   const [operator, ...args] = expr.val;
   validateFunctionSignature(args, 'string-upcase', 1);
   const string = validateArgumentType(evalExpression(ctx, args[0]), [
@@ -407,7 +352,7 @@ export function handleBuiltinStringUpcase(
   return element;
 }
 
-export function handleBuiltinReverse(ctx: Context, expr: Node<NodeValueList>): Node<NodeSymbol> {
+export function evalReverse(ctx: Context, expr: Node<NodeValueList>): Node<NodeSymbol> {
   const [operator, ...args] = expr.val;
   validateFunctionSignature(args, 'string-upcase', 1);
   const string = validateArgumentType(evalExpression(ctx, args[0]), [

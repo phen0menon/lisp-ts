@@ -59,9 +59,9 @@ function evalList(ctx: Context, expr: Node<NodeValueList>): AnyNode {
   if (!list.length) return nil;
 
   const [operator, ...params] = list;
+
   const func = ctx.scope.getFromSymtable(operator.val);
   if (!func) throw new UndefinedSymbolError(operator.val.toString());
-
   if (!isFunction(func)) throw new Error(`${operator.val} is not a function but ${operator.type}`);
 
   if (isBuiltin(func)) {

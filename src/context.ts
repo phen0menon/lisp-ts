@@ -1,28 +1,4 @@
-import {
-  handleBuiltinAddOperator,
-  handleBuiltinSubOperator,
-  handleBuiltinMultOperator,
-  handleBuiltinDivOperator,
-  handleBuiltinModOperator,
-  handleBuiltinSetq,
-  handleBuiltinDefun,
-  handleBuiltinPrint,
-  handleBuiltinTerpri,
-  handleBuiltinLtOperator,
-  handleBuiltinEqOperator,
-  handleBuiltinGtOperator,
-  handleBuiltinPowOperator,
-  handleBuiltinIf,
-  handleBuiltinCons,
-  handleBuiltinCar,
-  handleBuiltinCdr,
-  handleBuiltinNthCdr,
-  handleBuiltinNth,
-  handleBuiltinNull,
-  handleBuiltinSubseq,
-  handleBuiltinStringUpcase,
-  handleBuiltinReverse,
-} from './builtins';
+import * as builtins from './builtins';
 import { Context } from './types';
 import { Scope } from './scope';
 import { createBuiltinObject, nil } from './helpers';
@@ -51,28 +27,28 @@ export function createContext(props: Partial<Context> = {}): Context {
 
 export function initBuiltins(ctx: Context): void {
   const { symtable } = ctx.scope.get();
-  symtable.set('+', createBuiltinObject(handleBuiltinAddOperator));
-  symtable.set('-', createBuiltinObject(handleBuiltinSubOperator));
-  symtable.set('*', createBuiltinObject(handleBuiltinMultOperator));
-  symtable.set('/', createBuiltinObject(handleBuiltinDivOperator));
-  symtable.set('%', createBuiltinObject(handleBuiltinModOperator));
-  symtable.set('<', createBuiltinObject(handleBuiltinLtOperator));
-  symtable.set('=', createBuiltinObject(handleBuiltinEqOperator));
-  symtable.set('>', createBuiltinObject(handleBuiltinGtOperator));
-  symtable.set('**', createBuiltinObject(handleBuiltinPowOperator));
-  symtable.set('setq', createBuiltinObject(handleBuiltinSetq));
-  symtable.set('print', createBuiltinObject(handleBuiltinPrint));
-  symtable.set('defun', createBuiltinObject(handleBuiltinDefun));
-  symtable.set('terpri', createBuiltinObject(handleBuiltinTerpri));
-  symtable.set('if', createBuiltinObject(handleBuiltinIf));
-  symtable.set('cons', createBuiltinObject(handleBuiltinCons));
-  symtable.set('car', createBuiltinObject(handleBuiltinCar));
-  symtable.set('cdr', createBuiltinObject(handleBuiltinCdr));
-  symtable.set('nthcdr', createBuiltinObject(handleBuiltinNthCdr));
-  symtable.set('nth', createBuiltinObject(handleBuiltinNth));
-  symtable.set('subseq', createBuiltinObject(handleBuiltinSubseq));
-  symtable.set('null', createBuiltinObject(handleBuiltinNull));
-  symtable.set('string-upcase', createBuiltinObject(handleBuiltinStringUpcase));
-  symtable.set('reverse', createBuiltinObject(handleBuiltinReverse));
+  symtable.set('+', createBuiltinObject(builtins.evalAdd));
+  symtable.set('-', createBuiltinObject(builtins.evalSub));
+  symtable.set('*', createBuiltinObject(builtins.evalMult));
+  symtable.set('/', createBuiltinObject(builtins.evalDiv));
+  symtable.set('%', createBuiltinObject(builtins.evalMod));
+  symtable.set('<', createBuiltinObject(builtins.evalLtOperator));
+  symtable.set('=', createBuiltinObject(builtins.evalEqOperator));
+  symtable.set('>', createBuiltinObject(builtins.evalGtOperator));
+  symtable.set('**', createBuiltinObject(builtins.evalPowOperator));
+  symtable.set('setq', createBuiltinObject(builtins.evalSetq));
+  symtable.set('print', createBuiltinObject(builtins.evalPrint));
+  symtable.set('defun', createBuiltinObject(builtins.evalDefun));
+  symtable.set('terpri', createBuiltinObject(builtins.evalTerpri));
+  symtable.set('if', createBuiltinObject(builtins.evalIf));
+  symtable.set('cons', createBuiltinObject(builtins.evalCons));
+  symtable.set('car', createBuiltinObject(builtins.evalCar));
+  symtable.set('cdr', createBuiltinObject(builtins.evalCdr));
+  symtable.set('nthcdr', createBuiltinObject(builtins.evalNthCdr));
+  symtable.set('nth', createBuiltinObject(builtins.evalNth));
+  symtable.set('subseq', createBuiltinObject(builtins.evalSubseq));
+  symtable.set('null', createBuiltinObject(builtins.evalNull));
+  symtable.set('string-upcase', createBuiltinObject(builtins.evalStringUpcase));
+  symtable.set('reverse', createBuiltinObject(builtins.evalReverse));
   symtable.set('nil', nil);
 }

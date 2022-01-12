@@ -3,13 +3,7 @@ import { Node, AnyNode, NodeType, NodeValueList, NodeCallableFlags } from './typ
 export function isAlphaNumeric(str: string): boolean {
   for (let i = 0, len = str.length, code = 0; i < len; ++i) {
     code = str.charCodeAt(i);
-    if (
-      (code > 47 && code < 58) || // numeric (0-9)
-      (code > 64 && code < 91) || // upper alpha (A-Z)
-      (code > 96 && code < 123) // lower alpha (a-z)
-    )
-      continue;
-
+    if ((code > 47 && code < 58) || (code > 64 && code < 91) || (code > 96 && code < 123)) continue;
     return false;
   }
   return true;
@@ -28,7 +22,7 @@ export function isTruthy(node: AnyNode): boolean {
     case NodeType.Func:
     case NodeType.Number:
     case NodeType.Boolean:
-      return node.val !== 0 && node.val !== false;
+      return !node.val;
     case NodeType.List:
       return (node.val as NodeValueList).length > 0;
     case NodeType.String:
